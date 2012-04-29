@@ -160,9 +160,18 @@ d3_raphael_selectionPrototype.append = function(type) {
     return d3_raphael_selection(groups);
 }
 
+d3_raphael_selectionPrototype.select = function(type, f) {
+    return this.root.select(type, f);
+};
+
+d3_raphael_selectionPrototype.selectAll = function(type, f) {
+    return this.root.selectAll(type, f);
+};
+
 d3_raphael_selectionPrototype.each = d3_selectionPrototype.each;
 d3_raphael_selectionPrototype.empty = d3_selectionPrototype.empty;
 d3_raphael_selectionPrototype.node = d3_selectionPrototype.node;
+d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
 
 d3_raphael_selectionPrototype.classed = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
@@ -176,4 +185,3 @@ d3_raphael_selectionPrototype.sort = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.order = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.on = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.transition = throw_raphael_not_supported;
-d3_raphael_selectionPrototype.call = throw_raphael_not_supported;

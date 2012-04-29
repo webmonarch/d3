@@ -158,7 +158,8 @@ d3.raphael.js: \
 	src/raphael/selectors.js \
 	src/raphael/root.js \
 	src/raphael/selection.js \
-	src/raphael/selection-enter.js
+	src/raphael/selection-enter.js \
+	src/raphael/axis.js
 
 d3.behavior.js: \
 	src/behavior/behavior.js \
