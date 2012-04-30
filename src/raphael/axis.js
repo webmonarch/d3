@@ -15,14 +15,14 @@ d3.raphael.axis = function() {
         left = 0;
 
     // todo: work-around because we don't have stylesheet
+    var classPrefix = "";
 
     // todo: figure out if we can refactor to reuse code
 
     function axis(selection) {
-        var root = selection.root;
 
         selection.each(function() {
-            var g = root.select("");
+            var g = selection.root.select("");
 
             // Ticks, or domain values for ordinal scales.
             var ticks = tickValues == null ? (scale.ticks ? scale.ticks.apply(scale, tickArguments_) : scale.domain()) : tickValues,
@@ -31,18 +31,20 @@ d3.raphael.axis = function() {
             // Major ticks.
             var tick = g.selectAll("g").data(ticks, String),
                 tickEnter = tick.enter().append("path")
+                    .classed(classPrefix + "path", true)
 //                tickEnter = tick.enter().insert("g", "path").style("opacity", 1e-6),
 //                tickExit = d3.transition(tick.exit()).style("opacity", 1e-6).remove(),
 //                tickUpdate = d3.transition(tick).style("opacity", 1),
 //                tickTransform;
 
             var text = tick.append("text")
-                .attr("text", function(d) { return d;} );
+                .attr("text", tickFormat );
 
             // Domain.
             var range = d3_scaleRange(scale),
                 path = g.selectAll(".domain").data([0]),
                 pathEnter = path.enter().append("path")
+                    .classed(classPrefix + "pathdomain", true)
 //                pathEnter = path.enter().append("path").attr("class", "domain")
 //                pathUpdate = d3.transition(path);
 
@@ -156,6 +158,15 @@ d3.raphael.axis = function() {
             return left;
         else
             left = val;
+
+        return this;
+    }
+
+    axis.classPrefix = function(val) {
+        if(typeof val === "undefined")
+            return classPrefix;
+        else
+            classPrefix = val;
 
         return this;
     }

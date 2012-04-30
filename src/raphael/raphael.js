@@ -20,3 +20,7 @@ function d3_raphael_pathArrayToString(pa) {
 
     return ret;
 }
+
+function d3_raphael_functify(f) {
+    return (typeof f === "function") ? f : function() { return f; };
+}

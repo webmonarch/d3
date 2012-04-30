@@ -136,6 +136,7 @@ suite.addBatch({
         "enter().append updates update selection": function() {},
         "append on regular selections": function() {},
         "axis": function() {},
+        "css class support": function() {},
     }
 });
 

@@ -135,6 +135,19 @@ d3_raphael_selectionPrototype.attr = function(name, value) {
     return this;
 };
 
+d3_raphael_selectionPrototype.classed = function(name, add) {
+    var addF = d3_raphael_functify(add);
+
+    this.each(function() {
+        if(addF.apply(this, arguments))
+            this.addClass(name);
+        else
+            throw_raphael_not_supported();
+    })
+
+    return this;
+}
+
 d3_raphael_selectionPrototype.append = function(type) {
     var groups = [],
         group,
@@ -173,7 +186,6 @@ d3_raphael_selectionPrototype.empty = d3_selectionPrototype.empty;
 d3_raphael_selectionPrototype.node = d3_selectionPrototype.node;
 d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
 
-d3_raphael_selectionPrototype.classed = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.property = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.text = throw_raphael_not_supported;
