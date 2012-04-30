@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bar Chart</title>
+    <script type="text/javascript" src=axis"../../lib/sizzle/sizzle.js"></script>
+    <script type="text/javascript" src="../../lib/ie8/compat.js"></script>
+    <script type="text/javascript" src="../../lib/raphael/raphael.js"></script>
+    <script type="text/javascript" src="../../d3.v2.js"></script>
+    <style type="text/css">
+
+body {
+    font: 10px sans-serif;
+}
+
+.bar {
+    fill: steelblue;
+}
+
+.bartext {
+    fill: white;
+}
+
+.axis {
+    shape-rendering: crispEdges;
+}
+
+/* todo: class lookup in ie workaround is bad */
+/*.xaxis_path {*/
+    /*fill: none;*/
+/*}*/
+
+.xaxis_line, .xaxis_path, .xaxis_pathdomain {
+    stroke: #fff;
+    stroke-opacity: .8;
+}
+
+.yaxis_path {
+    stroke: black;
+}
+
+    </style>
+</head>
+<body>
+<script type="text/javascript">
+
+    var margin = {top: 30, right: 10, bottom: 10, left: 30},
+            width = 960 - margin.right - margin.left,
+            height = 930 - margin.top - margin.bottom;
+
+    var format = d3.format(",.0f");
+
+    var x = d3.scale.linear()
+            .range([0, width]);
+
+    var y = d3.scale.ordinal()
+            .rangeRoundBands([0, height], .1);
+
+    var xAxis = d3.raphael.axis()
+        .top(margin.top + 0.5)
+        .left(margin.left + 0.5)
+        .classPrefix("xaxis_")
+        .scale(x)
+        .orient("top")
+        .tickSize(-height);
+
+    var yAxis = d3.raphael.axis()
+        .top(margin.top + 0.5)
+        .left(margin.left + 0.5)
+        .classPrefix("yaxis_")
+        .scale(y)
+        .orient("left")
+        .tickSize(0);
+
+    var paper = new Raphael(document.body, width + margin.left + margin.right, height + margin.top + margin.bottom);
+    paper.setClass("barchart");
+
+    var d3_paper = d3.raphael(paper);
+
+    d3.csv("sample-data.csv", function(data) {
+
+        // Parse numbers, and sort by value.
+        data.forEach(function(d) { d.value = +d.value; });
+        data.sort(function(a, b) { return b.value - a.value; });
+
+        // Set the scale domain.
+        x.domain([0, d3.max(data, function(d) { return d.value; })]);
+        y.domain(data.map(function(d) { return d.name; }));
+
+        var bar = d3_paper.selectAll("rect")
+                .data(data);
+
+        bar.enter().append("rect")
+                .classed("bar", true)
+
+        bar.attr("x", 0 + 0.5 + margin.left)
+            .attr("y", function(d) { return y(d.name) + 0.5 + margin.top })
+//            .attr("fill", "steelblue")
+            .attr("stroke", 0)
+            .attr("width", function(d) { return x(d.value); } )
+            .attr("height", y.rangeBand());
+
+        bar.append("text")
+            .classed("bartext", true)
+            .attr("x", function(d) { return x(d.value) + margin.left; })
+            .attr("y", function(d) { return y(d.name) + 0.5 + y.rangeBand() / 2 + margin.top; })
+//                .attr("dx", -3)
+//                .attr("dy", ".35em")
+            .attr("text-anchor", "end")
+            .attr("text", function(d) { return format(d.value); })
+        ;
+
+        // todo: hack way to call these
+        d3_paper.select("rect").call(xAxis);
+        d3_paper.select("rect").call(yAxis);
+
+    });
+
+</script>
+</body>
+</html>
