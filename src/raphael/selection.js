@@ -182,6 +182,20 @@ d3_raphael_selectionPrototype.classed = function(name, add) {
     return this;
 }
 
+d3_raphael_selectionPrototype.text = function(value) {
+    var valueF = d3_raphael_functify(value);
+
+    this.each(function() {
+        if(this.type !== "text")
+            throw ("Method 'text' not supported on Raphael element " + this.type);
+
+        this.attr("text", valueF.apply(this, arguments));
+    });
+
+    return this;
+}
+
+
 d3_raphael_selectionPrototype.select = function(type, f) {
     return this.root.select(type, f);
 };
@@ -199,7 +213,6 @@ d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
 d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
 
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
-d3_raphael_selectionPrototype.text = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.html = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.insert = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.filter = throw_raphael_not_supported;
