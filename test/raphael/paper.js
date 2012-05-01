@@ -136,6 +136,8 @@ suite.addBatch({
         "enter().append updates update selection": function() {},
         "append to root": function() {},
         "append on regular selections": function() {},
+        "select on enter": function() {},
+        "select on enter.append": function() {},
         "throw on unsupported primitive": function() {},
         "attr path and d are alias": function() {},
         "custom attributes": function() {},
