@@ -126,10 +126,44 @@ d3_raphael_selectionPrototype.data = function(value, key) {
     return update;
 };
 
+d3_raphael_selectionPrototype.append = function(type) {
+    var groups = [],
+        group,
+        nodeData;
+
+    for(var j = 0; j < this.length; j++) {
+        groups.push((group = []));
+
+        for(var i = 0; i < this[j].length; i++) {
+            if((nodeData = this[j][i])) {
+                var newNode = this.root.create(type);
+
+                if("__data__" in nodeData)
+                    newNode.__data__ = nodeData.__data__;
+
+                group.push(newNode);
+            } else {
+                group.push(null);
+            }
+        }
+    }
+
+    return d3_raphael_selection(groups, this.root);
+}
+
 d3_raphael_selectionPrototype.attr = function(name, value) {
     var valueF = (typeof value === "function") ? value : function() { return value; };
     this.each(function() {
-        this.attr(name, valueF.apply(this, arguments));
+        var value = valueF.apply(this, arguments);
+
+        switch(name) {
+            case "class":
+                this.addClass(value);
+                break;
+            default:
+                this.attr(name, value);
+        }
+
     });
 
     return this;
@@ -148,31 +182,6 @@ d3_raphael_selectionPrototype.classed = function(name, add) {
     return this;
 }
 
-d3_raphael_selectionPrototype.append = function(type) {
-    var groups = [],
-        group,
-        nodeData;
-
-    for(var j = 0; j < this.length; j++) {
-        groups.push((group = []));
-
-        for(var i = 0; i < this[j].length; i++) {
-            if((nodeData = this[j][i])) {
-                var newNode = this.root[type]();
-
-                if("__data__" in nodeData)
-                    newNode.__data__ = nodeData.__data__;
-
-                group.push(newNode);
-            } else {
-                group.push(null);
-            }
-        }
-    }
-
-    return d3_raphael_selection(groups);
-}
-
 d3_raphael_selectionPrototype.select = function(type, f) {
     return this.root.select(type, f);
 };
@@ -181,18 +190,19 @@ d3_raphael_selectionPrototype.selectAll = function(type, f) {
     return this.root.selectAll(type, f);
 };
 
+
 d3_raphael_selectionPrototype.each = d3_selectionPrototype.each;
 d3_raphael_selectionPrototype.empty = d3_selectionPrototype.empty;
 d3_raphael_selectionPrototype.node = d3_selectionPrototype.node;
+d3_raphael_selectionPrototype.property = d3_selectionPrototype.property;
 d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
+d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
 
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
-d3_raphael_selectionPrototype.property = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.text = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.html = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.insert = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.filter = throw_raphael_not_supported;
-d3_raphael_selectionPrototype.datum = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.sort = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.order = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.on = throw_raphael_not_supported;

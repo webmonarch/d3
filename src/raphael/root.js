@@ -1,5 +1,6 @@
 // todo: make selector format more better
 var D3RaphaelRoot = function(paper) {
+    d3_raphael_addCustomAttributes(paper);
     this.paper = paper;
 };
 
@@ -11,6 +12,12 @@ D3RaphaelRoot.prototype.selectAll = function(type) {
     return d3_raphael_selection([d3_raphael_type_selector(type, this, false)], this)
 };
 
+D3RaphaelRoot.prototype.create = function(type) {
+    if(d3_raphael_paperShapes.indexOf(type) < 0)
+        throw "Unsupported shape: " + type;
+
+    return this[type]();
+};
 
 var d3_raphael_paperShapes = ["circle", "ellipse", "rect", "text", "path"];
 var d3_raphael_paperDelegateMethods = d3_raphael_paperShapes.concat(["forEach"]);

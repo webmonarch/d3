@@ -155,7 +155,9 @@ d3.svg.js: \
 
 d3.raphael.js: \
 	src/raphael/raphael.js \
+	src/raphael/raphael-utils.js \
 	src/raphael/raphael-addclass.js \
+	src/raphael/raphael-customattributes.js \
 	src/raphael/selectors.js \
 	src/raphael/root.js \
 	src/raphael/selection.js \
