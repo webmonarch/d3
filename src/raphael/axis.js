@@ -65,6 +65,18 @@ d3.raphael.axis = function() {
                     break;
                 }
 
+                case "bottom": {
+                    tick.attr("path", function(d) { return d3_raphael_pathArrayToString([["M", [left + scale1(d), top]],["l", [0, tickMajorSize]]]); });
+                    text.attr("x", function(d) { return scale1(d) + left + (scale1.rangeBand? scale1.rangeBand() / 2.0 : 0); })
+                        .attr("y", top + tickMajorSize + 7 ) // todo add dy support to raphael
+                        .attr("text-anchor", "middle")
+//                    path.attr("path", "M" + (-tickEndSize + left) + "," + (range[0] + top) + "h" + tickEndSize + "v" + (range[1] + top) + "h" + -tickEndSize)
+                    path.attr("path", "M" + (range[0] + left) + "," + (tickEndSize + top) + "v" + -tickEndSize + "H" + (range[1] + left) + "v" + tickEndSize)
+
+                    break;
+                }
+
+
                 case "left": {
                     tick.attr("path", function(d) { return d3_raphael_pathArrayToString([["M", [left, scale1(d) + top]],["l", [-tickMajorSize,0]]]); });
                     path.attr("path", "M" + (-tickEndSize + left) + "," + (range[0] + top) + "h" + tickEndSize + "V" + (range[1] + top) + "h" + -tickEndSize)
