@@ -35,7 +35,7 @@ d3_raphael_enterSelectionPrototype.append = function(type) {
         }
     }
 
-    return d3_raphael_selection(groups);
+    return d3_raphael_selection(groups, this.root);
 };
 
 d3_raphael_enterSelectionPrototype.empty = d3_selectionPrototype.empty;
