@@ -4637,7 +4637,634 @@ var d3_svg_brushResizes = [
   ["n", "s"],
   []
 ];
-d3.behavior = {};
+d3.raphael = function(paper) {
+    var root = new D3RaphaelRoot(paper);
+
+    return d3_raphael_selection([[root.paper]], root)
+};
+
+function throw_raphael_not_supported() {
+    throw "Not Supported!";
+};
+
+function d3_raphael_pathArrayToString(pa) {
+    var ret = "";
+
+    for(var i = 0; i < pa.length; i++) {
+        var p = pa[i];
+
+        ret += p[0];
+
+        if(p[1])
+            ret += (p[1].join(","))
+    }
+
+    return ret;
+}
+
+function d3_raphael_functify(f) {
+    return (typeof f === "function") ? f : function() { return f; };
+}
+if(typeof Raphael !== "undefined") {
+    // Inspiration (and code copied): http://strongriley.github.com/d3/ex/calendar.html (-ewebb 120430)
+
+// From: http://www.hunlock.com/blogs/Totally_Pwn_CSS_with_Javascript#quickIDX1
+    function d3_raphael_getCSSRule(ruleName, deleteFlag) {                     // Return requested style obejct
+        ruleName = ruleName.toLowerCase();                          // Convert test string to lower case.
+        if (document.styleSheets) {                                 // If browser can play with stylesheets
+            for (var i = 0; i < document.styleSheets.length; i++) { // For each stylesheet
+                var styleSheet = document.styleSheets[i];           // Get the current Stylesheet
+                var ii = 0;                                         // Initialize subCounter.
+                var cssRule = false;                                // Initialize cssRule.
+                do {                                                    // For each rule in stylesheet
+                    if (styleSheet.cssRules) {                      // Browser uses cssRules?
+                        cssRule = styleSheet.cssRules[ii];          // Yes --Mozilla Style
+                    } else {                                        // Browser usses rules?
+                        cssRule = styleSheet.rules[ii];             // Yes IE style.
+                    }                                               // End IE check.
+                    if (cssRule) {                                  // If we found a rule...
+                        if (cssRule.selectorText.toLowerCase() == ruleName) { //  match ruleName?
+                            if (deleteFlag == 'delete') {               // Yes.  Are we deleteing?
+                                if (styleSheet.cssRules) {              // Yes, deleting...
+                                    styleSheet.deleteRule(ii);          // Delete rule, Moz Style
+                                } else {                                // Still deleting.
+                                    styleSheet.removeRule(ii);          // Delete rule IE style.
+                                }                                       // End IE check.
+                                return true;                            // return true, class deleted.
+                            } else {                                    // found and not deleting.
+                                return cssRule;                         // return the style object.
+                            }                                           // End delete Check
+                        }                                               // End found rule name
+                    }                                                   // end found cssRule
+                    ii++;                                               // Increment sub-counter
+                } while (cssRule)                                       // end While loop
+            }                                                           // end For loop
+        }                                                               // end styleSheet ability check
+        return false;                                                   // we found NOTHING!
+    }                                                                   // end getCSSRule
+
+    function d3_raphael_getCSSAttributes(selector) {
+        var rules = d3_raphael_getCSSRule(selector),
+            attributes = {};
+        if (!rules) return false;
+        rules = rules.style.cssText.split(';');
+        for (var i = 0; i < rules.length; i++) {
+            var rule = rules[i].split(':');
+            if (rule[0] !== undefined && rule[1] !== undefined)
+                var key = rule[0].replace(' ',''),
+                    value = rule[1].replace(' ','');
+            attributes[key] = value;
+        }
+        return attributes;
+    }
+
+
+    Raphael.st.addClass = function(addClass, parentSelector) {
+        //Simple set Attribute class if SVG
+        if (Raphael.svg) {
+            for (var i = 0; i < this.length; i++) {
+                this[i].addClass(addClass)
+            };
+        }
+        //For IE
+        else {
+            var sel = '.' + addClass;
+            sel = parentSelector ? parentSelector + ' ' + sel : sel;
+            var attributes = d3_raphael_getCSSAttributes(sel);
+            for (var i = 0; i < this.length; i++) {
+                this[i].attr(attributes);
+            }
+        }
+    }
+
+    Raphael.el.addClass = function(addClass, parentSelector) {
+        //easily add class
+        if (Raphael.svg) {
+            var cssClass = this.node.getAttribute('class') !== null ? this.node.getAttribute('class') + ' ' + addClass : addClass;
+            this.node.setAttribute('class', cssClass);
+        }
+        //must extract CSS requirements
+        else {
+            var sel = '.' + addClass;
+            sel = parentSelector ? parentSelector + ' ' + sel : sel;
+
+            var attributes = d3_raphael_getCSSAttributes(sel);
+            this.attr(attributes);
+        }
+    }
+}if(typeof Raphael !== "undefined") {
+    // adds a Raphael custom attribute "d" which maps to "path"
+    // in d3/svg, the definition of a path is specified via attribute "d",
+    // in raphael, it's specified via attribute "path".
+    //
+    // this bridges the two worlds a little
+    function d3_raphael_addCustomAttributes(paper) {
+        paper.ca.d = function(path) {
+            return {path: path};
+        }
+    }
+
+    // adds selection.attr("class",...) support
+    // see raphaelselection.attr
+}
+function d3_raphael_type_selector(type, d3_paper, first) {
+    var found = [];
+
+    d3_paper.forEach(function(el) {
+        if(el.type === type) {
+            found.push(el);
+
+            return !first; // break forEach for first only requests
+        }
+    })
+
+    return found;
+};// todo: make selector format more better
+var D3RaphaelRoot = function(paper) {
+    d3_raphael_addCustomAttributes(paper);
+    this.paper = paper;
+};
+
+D3RaphaelRoot.prototype.select = function(type) {
+    return d3_raphael_selection([d3_raphael_type_selector(type, this, true)], this)
+};
+
+D3RaphaelRoot.prototype.selectAll = function(type) {
+    return d3_raphael_selection([d3_raphael_type_selector(type, this, false)], this)
+};
+
+D3RaphaelRoot.prototype.create = function(type) {
+    if(d3_raphael_paperShapes.indexOf(type) < 0)
+        throw "Unsupported shape: " + type;
+
+    return this[type]();
+};
+
+var d3_raphael_paperShapes = ["circle", "ellipse", "rect", "text", "path"];
+var d3_raphael_paperDelegateMethods = d3_raphael_paperShapes.concat(["forEach"]);
+
+function d3_raphael_rootToPaperDelegate(method_name) {
+    return function() { return this.paper[method_name].apply(this.paper, arguments); }
+};
+
+for(var i = 0; i < d3_raphael_paperDelegateMethods.length; i++) {
+    var method_name = d3_raphael_paperDelegateMethods[i];
+    D3RaphaelRoot.prototype[method_name] = d3_raphael_rootToPaperDelegate(method_name);
+};var d3_raphael_selection = function(groups, d3_raphael_root) {
+    d3_arraySubclass(groups, d3_raphael_selectionPrototype);
+    groups.root = d3_raphael_root;
+
+    return groups;
+};
+
+var d3_raphael_selectionPrototype = [];
+
+// todo: see if it is possible to generalize this method from the almost identical one in d3
+d3_raphael_selectionPrototype.data = function(value, key) {
+    var i = -1,
+        n = this.length,
+        group,
+        node;
+
+    // If no value is specified, return the first value.
+    if (!arguments.length) {
+        value = new Array(n = (group = this[0]).length);
+        while (++i < n) {
+            if (node = group[i]) {
+                value[i] = node.__data__;
+            }
+        }
+        return value;
+    }
+
+    function bind(group, groupData) {
+        var i,
+            n = group.length,
+            m = groupData.length,
+            n0 = Math.min(n, m),
+            n1 = Math.max(n, m),
+            updateNodes = [],
+            enterNodes = [],
+            exitNodes = [],
+            node,
+            nodeData;
+
+        if (key) {
+            var nodeByKeyValue = new d3_Map,
+                keyValues = [],
+                keyValue,
+                j = groupData.length;
+
+            for (i = -1; ++i < n;) {
+                keyValue = key.call(node = group[i], node.__data__, i);
+                if (nodeByKeyValue.has(keyValue)) {
+                    exitNodes[j++] = node; // duplicate key
+                } else {
+                    nodeByKeyValue.set(keyValue, node);
+                }
+                keyValues.push(keyValue);
+            }
+
+            for (i = -1; ++i < m;) {
+                keyValue = key.call(groupData, nodeData = groupData[i], i)
+                if (nodeByKeyValue.has(keyValue)) {
+                    updateNodes[i] = node = nodeByKeyValue.get(keyValue);
+                    node.__data__ = nodeData;
+                    enterNodes[i] = exitNodes[i] = null;
+                } else {
+                    enterNodes[i] = d3_selection_dataNode(nodeData);
+                    updateNodes[i] = exitNodes[i] = null;
+                }
+                nodeByKeyValue.remove(keyValue);
+            }
+
+            for (i = -1; ++i < n;) {
+                if (nodeByKeyValue.has(keyValues[i])) {
+                    exitNodes[i] = group[i];
+                }
+            }
+        } else {
+            for (i = -1; ++i < n0;) {
+                node = group[i];
+                nodeData = groupData[i];
+                if (node) {
+                    node.__data__ = nodeData;
+                    updateNodes[i] = node;
+                    enterNodes[i] = exitNodes[i] = null;
+                } else {
+                    enterNodes[i] = d3_selection_dataNode(nodeData);
+                    updateNodes[i] = exitNodes[i] = null;
+                }
+            }
+            for (; i < m; ++i) {
+                enterNodes[i] = d3_selection_dataNode(groupData[i]);
+                updateNodes[i] = exitNodes[i] = null;
+            }
+            for (; i < n1; ++i) {
+                exitNodes[i] = group[i];
+                enterNodes[i] = updateNodes[i] = null;
+            }
+        }
+
+        enterNodes.update
+            = updateNodes;
+
+        enterNodes.parentNode
+            = updateNodes.parentNode
+            = exitNodes.parentNode
+            = group.parentNode;
+
+        enter.push(enterNodes);
+        update.push(updateNodes);
+        exit.push(exitNodes);
+    }
+
+    var enter = d3_raphael_enterSelection([], this.root),
+        update = d3_raphael_selection([], this.root),
+        exit = d3_raphael_selection([], this.root);
+
+    if (typeof value === "function") {
+        while (++i < n) {
+            bind(group = this[i], value.call(group, group.parentNode.__data__, i));
+        }
+    } else {
+        while (++i < n) {
+            bind(group = this[i], value);
+        }
+    }
+
+    update.enter = function() { return enter; };
+    update.exit = function() { return exit; };
+    return update;
+};
+
+d3_raphael_selectionPrototype.append = function(type) {
+    var groups = [],
+        group,
+        nodeData;
+
+    for(var j = 0; j < this.length; j++) {
+        groups.push((group = []));
+
+        for(var i = 0; i < this[j].length; i++) {
+            if((nodeData = this[j][i])) {
+                var newNode = this.root.create(type);
+
+                if("__data__" in nodeData)
+                    newNode.__data__ = nodeData.__data__;
+
+                group.push(newNode);
+            } else {
+                group.push(null);
+            }
+        }
+    }
+
+    return d3_raphael_selection(groups, this.root);
+}
+
+d3_raphael_selectionPrototype.attr = function(name, value) {
+    var valueF = (typeof value === "function") ? value : function() { return value; };
+    this.each(function() {
+        var value = valueF.apply(this, arguments);
+
+        switch(name) {
+            case "class":
+                this.addClass(value);
+                break;
+            default:
+                this.attr(name, value);
+        }
+
+    });
+
+    return this;
+};
+
+d3_raphael_selectionPrototype.classed = function(name, add) {
+    var addF = d3_raphael_functify(add);
+
+    this.each(function() {
+        if(addF.apply(this, arguments))
+            this.addClass(name);
+        else
+            throw_raphael_not_supported();
+    })
+
+    return this;
+}
+
+d3_raphael_selectionPrototype.text = function(value) {
+    var valueF = d3_raphael_functify(value);
+
+    this.each(function() {
+        if(this.type !== "text")
+            throw ("Method 'text' not supported on Raphael element " + this.type);
+
+        this.attr("text", valueF.apply(this, arguments));
+    });
+
+    return this;
+}
+
+
+d3_raphael_selectionPrototype.select = function(type, f) {
+    return this.root.select(type, f);
+};
+
+d3_raphael_selectionPrototype.selectAll = function(type, f) {
+    return this.root.selectAll(type, f);
+};
+
+
+d3_raphael_selectionPrototype.each = d3_selectionPrototype.each;
+d3_raphael_selectionPrototype.empty = d3_selectionPrototype.empty;
+d3_raphael_selectionPrototype.node = d3_selectionPrototype.node;
+d3_raphael_selectionPrototype.property = d3_selectionPrototype.property;
+d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
+d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
+
+d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
+d3_raphael_selectionPrototype.html = throw_raphael_not_supported;
+d3_raphael_selectionPrototype.insert = throw_raphael_not_supported;
+d3_raphael_selectionPrototype.filter = throw_raphael_not_supported;
+d3_raphael_selectionPrototype.sort = throw_raphael_not_supported;
+d3_raphael_selectionPrototype.order = throw_raphael_not_supported;
+d3_raphael_selectionPrototype.on = throw_raphael_not_supported;
+d3_raphael_selectionPrototype.transition = throw_raphael_not_supported;
+function d3_raphael_enterSelection(groups, d3_raphael_root) {
+    d3_arraySubclass(groups, d3_raphael_enterSelectionPrototype);
+    groups.root = d3_raphael_root;
+
+    return groups;
+}
+
+var d3_raphael_enterSelectionPrototype = [];
+
+d3_raphael_enterSelectionPrototype.append = function(type) {
+    if(d3_raphael_paperShapes.indexOf(type) < 0)
+        throw TypeError("Type Not Supported");
+
+    var groups = [],
+        group,
+        upgroup, // tricky!
+        nodeData;
+
+    for(var j = 0; j < this.length; j++) {
+        groups.push((group = []));
+        upgroup = this[j].update; // upgroup is the enter selection's corresponding update selection
+
+        for(var i = 0; i < this[j].length; i++) {
+            if((nodeData = this[j][i])) {
+                var newNode = this.root[type]();
+
+                if("__data__" in nodeData)
+                    newNode.__data__ = nodeData.__data__;
+
+                group.push(newNode);
+                upgroup[i] = newNode; // adds the new node to the update selection
+            } else {
+                group.push(null);
+            }
+        }
+    }
+
+    return d3_raphael_selection(groups, this.root);
+};
+
+d3_raphael_enterSelectionPrototype.empty = d3_selectionPrototype.empty;
+d3_raphael_enterSelectionPrototype.node = d3_selectionPrototype.node;
+d3_raphael_enterSelectionPrototype.insert = throw_raphael_not_supported;
+
+
+
+d3.raphael.axis = function() {
+    var scale = d3.scale.linear(),
+        orient = "bottom",
+        tickMajorSize = 6,
+        tickMinorSize = 6,
+        tickEndSize = 6,
+        tickPadding = 3,
+        tickArguments_ = [10],
+        tickValues = null,
+        tickFormat_,
+        tickSubdivide = 0;
+
+    // todo: work-around because we don't have groups
+    var top = 0,
+        left = 0;
+
+    // todo: work-around because we don't have stylesheet
+    var classPrefix = "";
+
+    // todo: figure out if we can refactor to reuse code
+
+    function axis(selection) {
+
+        selection.each(function() {
+            var g = selection.root.select("");
+
+            // Ticks, or domain values for ordinal scales.
+            var ticks = tickValues == null ? (scale.ticks ? scale.ticks.apply(scale, tickArguments_) : scale.domain()) : tickValues,
+                tickFormat = tickFormat_ == null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments_) : String) : tickFormat_;
+
+            // Major ticks.
+            var tick = g.selectAll("g").data(ticks, String),
+                tickEnter = tick.enter().append("path")
+                    .classed(classPrefix + "path", true)
+//                tickEnter = tick.enter().insert("g", "path").style("opacity", 1e-6),
+//                tickExit = d3.transition(tick.exit()).style("opacity", 1e-6).remove(),
+//                tickUpdate = d3.transition(tick).style("opacity", 1),
+//                tickTransform;
+
+            var text = tick.append("text")
+                .attr("text", tickFormat );
+
+            // Domain.
+            var range = d3_scaleRange(scale),
+                path = g.selectAll(".domain").data([0]),
+                pathEnter = path.enter().append("path")
+                    .classed(classPrefix + "pathdomain", true)
+//                pathEnter = path.enter().append("path").attr("class", "domain")
+//                pathUpdate = d3.transition(path);
+
+            // Stash a snapshot of the new scale, and retrieve the old snapshot.
+            var scale1 = scale.copy(),
+                scale0 = this.__chart__ || scale1;
+            this.__chart__ = scale1;
+
+            switch (orient) {
+                case "top": {
+                    tick.attr("path", function(d) { return d3_raphael_pathArrayToString([["M", [left + scale1(d), top]],["l", [0, -tickMajorSize]]]); });
+                    text.attr("x", function(d) { return scale1(d) + left + (scale1.rangeBand? scale1.rangeBand() / 2.0 : 0); })
+                        .attr("y", top- 7 ) // todo add dy support to raphael
+                        .attr("text-anchor", "middle")
+//                    path.attr("path", "M" + (-tickEndSize + left) + "," + (range[0] + top) + "h" + tickEndSize + "v" + (range[1] + top) + "h" + -tickEndSize)
+                    path.attr("path", "M" + (range[0] + left) + "," + (-tickEndSize + top) + "v" + tickEndSize + "H" + (range[1] + left) + "v" + -tickEndSize)
+
+                    break;
+                }
+
+                case "bottom": {
+                    tick.attr("path", function(d) { return d3_raphael_pathArrayToString([["M", [left + scale1(d), top]],["l", [0, tickMajorSize]]]); });
+                    text.attr("x", function(d) { return scale1(d) + left + (scale1.rangeBand? scale1.rangeBand() / 2.0 : 0); })
+                        .attr("y", top + tickMajorSize + 7 ) // todo add dy support to raphael
+                        .attr("text-anchor", "middle")
+//                    path.attr("path", "M" + (-tickEndSize + left) + "," + (range[0] + top) + "h" + tickEndSize + "v" + (range[1] + top) + "h" + -tickEndSize)
+                    path.attr("path", "M" + (range[0] + left) + "," + (tickEndSize + top) + "v" + -tickEndSize + "H" + (range[1] + left) + "v" + tickEndSize)
+
+                    break;
+                }
+
+
+                case "left": {
+                    tick.attr("path", function(d) { return d3_raphael_pathArrayToString([["M", [left, scale1(d) + top]],["l", [-tickMajorSize,0]]]); });
+                    path.attr("path", "M" + (-tickEndSize + left) + "," + (range[0] + top) + "h" + tickEndSize + "V" + (range[1] + top) + "h" + -tickEndSize)
+                    text.attr("x", left - 5)
+                        .attr("y", function(d) { return scale1(d) + top + (scale1.rangeBand? scale1.rangeBand() / 2.0 : 0); })
+                        .attr("text-anchor", "end")
+
+                    break;
+                }
+
+                default: {
+                    throw "Unsupported " + orient;
+                }
+            }
+
+//            // For quantitative scales:
+//            // - enter new ticks from the old scale
+//            // - exit old ticks to the new scale
+//            if (scale.ticks) {
+//                tickEnter.call(tickTransform, scale0);
+//                tickUpdate.call(tickTransform, scale1);
+//                tickExit.call(tickTransform, scale1);
+//                subtickEnter.call(tickTransform, scale0);
+//                subtickUpdate.call(tickTransform, scale1);
+//                subtickExit.call(tickTransform, scale1);
+//            }
+//
+//            // For ordinal scales:
+//            // - any entering ticks are undefined in the old scale
+//            // - any exiting ticks are undefined in the new scale
+//            // Therefore, we only need to transition updating ticks.
+//            else {
+//                var dx = scale1.rangeBand() / 2, x = function(d) { return scale1(d) + dx; };
+//                tickEnter.call(tickTransform, x);
+//                tickUpdate.call(tickTransform, x);
+//            }
+
+
+
+
+//            tick.attr("path", function(d) { return d3_raphael_pathArrayToString(
+//                [["M", [left, scale(d) + top]],["l", [-6,0]]]
+//            ); });
+//
+//            tick.append("text")
+//                .attr("x", left - 2)
+//                .attr("y", function(d) { return scale(d) + top + scale.rangeBand() / 2; })
+//                .attr("text-anchor", "end")
+//                .attr("text", function(d) { return d;} )
+//
+//            var range = d3_scaleRange(scale);
+//            console.log(range);
+//            g.select("rect")
+//                .append("path")
+//                .attr("path", d3_raphael_pathArrayToString([["M", [left, range[0] + top]],["L",[left, range[1] + top]]]))
+        })
+    }
+
+    axis.scale = function(x) {
+        if (!arguments.length) return scale;
+        scale = x;
+        return axis;
+    };
+
+    axis.orient = function(x) {
+        if (!arguments.length) return orient;
+        orient = x;
+        return axis;
+    };
+
+    axis.tickSize = function(x, y, z) {
+        if (!arguments.length) return tickMajorSize;
+        var n = arguments.length - 1;
+        tickMajorSize = +x;
+        tickMinorSize = n > 1 ? +y : tickMajorSize;
+        tickEndSize = n > 0 ? +arguments[n] : tickMajorSize;
+        return axis;
+    };
+
+    axis.top = function(val) {
+        if(typeof val === "undefined")
+            return top;
+        else
+            top = val;
+
+        return this;
+    }
+
+    axis.left = function(val) {
+        if(typeof val === "undefined")
+            return left;
+        else
+            left = val;
+
+        return this;
+    }
+
+    axis.classPrefix = function(val) {
+        if(typeof val === "undefined")
+            return classPrefix;
+        else
+            classPrefix = val;
+
+        return this;
+    }
+
+    return axis;
+};d3.behavior = {};
 // TODO Track touch points by identifier.
 
 d3.behavior.drag = function() {
