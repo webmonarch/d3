@@ -7,6 +7,9 @@
  *
  * @param {Raphael.Paper} paper
  * @return {D3RaphaelSelection} a selection of the root Raphael.canvas element
+ *
+ * @function
+ * @namespace
  */
 d3.raphael = function(paper) {
     var root = new D3RaphaelRoot(paper);

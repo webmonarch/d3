@@ -7,6 +7,16 @@ function d3_raphael_enterSelection(groups, d3_raphael_root) {
 
 var d3_raphael_enterSelectionPrototype = [];
 
+/**
+ * @param {string} type
+ * @return {D3RaphaelEnterSelection} this
+ *
+ * @see D3RaphaelSelection#append
+ * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-append">d3.selection.append()</a></code>
+ *
+ * @function
+ * @name D3RaphaelEnterSelection#append
+ */
 d3_raphael_enterSelectionPrototype.append = function(type) {
     if(d3_raphael_paperShapes.indexOf(type) < 0)
         throw TypeError("Type Not Supported");
@@ -38,8 +48,23 @@ d3_raphael_enterSelectionPrototype.append = function(type) {
     return d3_raphael_selection(groups, this.root);
 };
 
+/**
+ * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-empty">d3.selection.empty()</a></code>
+ *
+ * @function
+ * @name D3RaphaelEnterSelection#empty
+ */
 d3_raphael_enterSelectionPrototype.empty = d3_selectionPrototype.empty;
+
+/**
+ * @see D3RaphaelSelection#node
+ * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-node">d3.selection.node()</a></code>
+ *
+ * @function
+ * @name D3RaphaelEnterSelection#node
+ */
 d3_raphael_enterSelectionPrototype.node = d3_selectionPrototype.node;
+
 d3_raphael_enterSelectionPrototype.insert = throw_raphael_not_supported;
 
 

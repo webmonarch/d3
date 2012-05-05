@@ -1,3 +1,10 @@
+/**
+ * Constructs a Raphael axis renderer function.
+ *
+ * @return {D3RaphaelAxis}
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/SVG-Axes">d3.svg.axis</a>
+ */
 d3.raphael.axis = function() {
     var scale = d3.scale.linear(),
         orient = "bottom",
@@ -135,18 +142,53 @@ d3.raphael.axis = function() {
         })
     }
 
+    /**
+     * Get or set the associated scale. If scale is specified, sets the scale and returns the axis. If scale is not specified, returns the current scale which defaults to a linear scale.
+     *
+     * @param {d3.Scale} x scale
+     * @return {D3RaphaelAxis} this
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/SVG-Axes#wiki-axis_scale">d3.svg.axis().scale()</a></code>
+     *
+     * @function
+     * @name D3RaphaelAxis#scale
+     */
     axis.scale = function(x) {
         if (!arguments.length) return scale;
         scale = x;
         return axis;
     };
 
+    /**
+     * Get or set the axis orientation. If orientation is specified, sets the axis orientation and returns the axis. If orientation is not specified, returns the current orientation, which defaults to "bottom".
+     *
+     * @param {String} x orientation, one of top, bottom, or left.  NOTE: right currently unsupported.  top/bottom for horizontal axis, and left for vertical.
+     * @return {D3RaphaelAxis} this
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/SVG-Axes#wiki-axis_orient">d3.svg.axis().orient()</a></code>
+     *
+     * @function
+     * @name D3RaphaelAxis#orient
+     */
     axis.orient = function(x) {
         if (!arguments.length) return orient;
         orient = x;
         return axis;
     };
 
+    /**
+     * Get or set the size of major, minor and end ticks.
+     *
+     * @param {Number} x major tick size
+     * @param {Number} y minor tick size (optional)
+     * @param {Number} z end tick size (optional)
+     * @return {D3RaphaelAxis} this
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/SVG-Axes#wiki-axis_tickSize">d3.svg.axis().tickSize()</a></code>
+     *
+     * @function
+     * @name D3RaphaelAxis#tickSize
+     */
     axis.tickSize = function(x, y, z) {
         if (!arguments.length) return tickMajorSize;
         var n = arguments.length - 1;
@@ -156,6 +198,15 @@ d3.raphael.axis = function() {
         return axis;
     };
 
+    /**
+     * Get or set the top offset for axis rendering.  This is a work-around for the fact Raphael doesn't have a group element.
+     *
+     * @param {Number} val top offset, in pixels
+     * @return {D3RaphaelAxis} this
+     *
+     * @function
+     * @name D3RaphaelAxis#top
+     */
     axis.top = function(val) {
         if(typeof val === "undefined")
             return top;
@@ -165,6 +216,15 @@ d3.raphael.axis = function() {
         return this;
     }
 
+    /**
+     * Get or set the left offset for the axis rendering.  This is a work-around for the fact Raphael doesn't have a group element.
+     *
+     * @param {Number} val left offset, in pixels
+     * @return {D3RaphaelAxis} this
+     *
+     * @function
+     * @name D3RaphaelAxis#left
+     */
     axis.left = function(val) {
         if(typeof val === "undefined")
             return left;
@@ -174,6 +234,25 @@ d3.raphael.axis = function() {
         return this;
     }
 
+    /**
+     * Get or set the class name prefix appended to the class names used to differentiate parts of the rendered axis.<br />
+     * <br />
+     * Class name suffixes used are:
+     * <dl>
+     *     <dt>path</dt>
+     *     <dd>axis ticks</dd>
+     *     <dt>pathdomain</dt>
+     *     <dd>axis domain line (and end-ticks)</dd>
+     * </dl>
+     *
+     * For example, if you have a class name prefix <code>xaxis_</code>, you would want to CSS style, <code>.xaxis_path</code> and <code>.xaxis_pathdomain</code>
+     *
+     * @param {String} val
+     * @return {D3RaphaelAxis} this
+     *
+     * @function
+     * @name D3RaphaelAxis#classPrefix
+     */
     axis.classPrefix = function(val) {
         if(typeof val === "undefined")
             return classPrefix;

@@ -136,7 +136,28 @@ d3_raphael_selectionPrototype.data = function(value, key_function) {
         }
     }
 
+    /**
+     * Returns the entering selection: placeholder nodes for each data element for which no corresponding existing DOM element was found in the current selection.
+     *
+     * @return {D3RaphaelEnterSelection}
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-enter">d3.selection.enter()</a></code>
+     *
+     * @function
+     * @name D3RaphaelUpdateSelection#enter
+     */
     update.enter = function() { return enter; };
+
+    /**
+     * Returns the exiting selection: existing DOM elements in the current selection for which no new data element was found.
+     *
+     * @return {D3RaphaelSelection}
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-exit">d3.selection.exit()</a></code>
+     *
+     * @function
+     * @name D3RaphaelUpdateSelection#exit
+     */
     update.exit = function() { return exit; };
     return update;
 };
