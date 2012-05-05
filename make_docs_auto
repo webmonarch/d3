@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#
+# Listens for changes in src/raphael and automatically calls ./make_docs.  
+#
+# Useful if you like immediately seeing the impact of the changes you make.
+#
+# Prereqs:
+#   inotify-tools
+#   working ./make_docs
+#
+# Usage:
+#   ./make_docs_auto
+#
+
+trap "" TERM # ignore TERM signal since the pgrep below seems to find us
+
+while inotifywait src/raphael/ -e create -e modify -e delete -qq; do 
+	kill -TERM -`pgrep make_docs`
+	echo "Building `timestamp`..."
+	./make_docs & 
+done
