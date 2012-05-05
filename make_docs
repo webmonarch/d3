@@ -1,0 +1,25 @@
+#!/bin/bash
+
+#
+# Helper script to invoke JSDoc to build the documentation of d34raphael
+#
+# Prereqs: 
+#   jsdoc 2.x - http://code.google.com/p/jsdoc-toolkit/
+#   java (see jsdoc docs, I'm using 1.7.0)
+#   find, sort, xargs
+#
+# To use:
+#   Change the JSDOC path below
+#
+# Improvements to this script welcome!
+#
+
+set -e 
+
+JSDOC="/home/ewebb/Source/external/jsdoc_toolkit-2.4.0/jsdoc-toolkit"
+DOC_OUT=docs/api
+
+mkdir -p $DOC_OUT
+
+find src/raphael -type f | sort | xargs java -jar $JSDOC/jsrun.jar $JSDOC/app/run.js --template=$JSDOC/templates/jsdoc/ --directory=$DOC_OUT $*  
+
