@@ -4637,6 +4637,23 @@ var d3_svg_brushResizes = [
   ["n", "s"],
   []
 ];
+/**
+ * Initializes and creates the root {@link D3RaphaelSelection} for the specified
+ * Raphael Paper.
+ *
+ * @example
+ * var paper = new Raphael(document.body, 300, 200);
+ * var d3_raphael_selection = d3.raphael(paper);
+ *
+ * @see <a href="http://raphaeljs.com/reference.html#Raphael">Raphael</a>
+ * @see <a href="http://raphaeljs.com/reference.html#Paper">Raphael.Paper</a>
+ *
+ * @param {Raphael.Paper} paper
+ * @return {D3RaphaelSelection} a selection of the root Raphael.Paper element
+ *
+ * @function
+ * @namespace
+ */
 d3.raphael = function(paper) {
     var root = new D3RaphaelRoot(paper);
 
@@ -4779,20 +4796,49 @@ function d3_raphael_type_selector(type, d3_paper, first) {
     })
 
     return found;
-};// todo: make selector format more better
+};/**
+ * A d3 container for the Raphael paper, with delegate helpers to Raphael and select/selectAll functionality.
+ *
+ * @param paper
+ * @constructor
+ * @version Internal; Subject to change
+ * @private
+ */
 var D3RaphaelRoot = function(paper) {
     d3_raphael_addCustomAttributes(paper);
     this.paper = paper;
 };
 
+/**
+ * Performs a select on the elements in the Raphael paper.
+ *
+ * @param {String} type raphael selector string (currently limited to a Raphael primitive type name, ie: rect, circle, ellipse, text, and path)
+ * @return {D3RaphaelSelection}
+ * @private
+ * @version Internal; Subject to change
+ */
 D3RaphaelRoot.prototype.select = function(type) {
     return d3_raphael_selection([d3_raphael_type_selector(type, this, true)], this)
 };
 
+/**
+ * Performs a selectAll on the elements in the Raphael paper.
+ *
+ * @param {String} type raphael selector string (currently limited to a Raphael primitive type name, ie: rect, circle, ellipse, text, and path)
+ * @return {D3RaphaelSelection}
+ * @private
+ */
 D3RaphaelRoot.prototype.selectAll = function(type) {
     return d3_raphael_selection([d3_raphael_type_selector(type, this, false)], this)
 };
 
+/**
+ * Creates a Raphael paper primitive object.
+ *
+ * @param {String} type type name
+ * @return {*}
+ * @private
+ */
 D3RaphaelRoot.prototype.create = function(type) {
     if(d3_raphael_paperShapes.indexOf(type) < 0)
         throw "Unsupported shape: " + type;
@@ -4800,6 +4846,13 @@ D3RaphaelRoot.prototype.create = function(type) {
     return this[type]();
 };
 
+/**
+ * Raphael primitives supported by d34raphael. <br />
+ * Currently: <code>["circle", "ellipse", "rect", "text", "path"]</code>
+ *
+ * @type {Array}
+ * @constant
+ */
 var d3_raphael_paperShapes = ["circle", "ellipse", "rect", "text", "path"];
 var d3_raphael_paperDelegateMethods = d3_raphael_paperShapes.concat(["forEach"]);
 
@@ -4809,6 +4862,7 @@ function d3_raphael_rootToPaperDelegate(method_name) {
 
 for(var i = 0; i < d3_raphael_paperDelegateMethods.length; i++) {
     var method_name = d3_raphael_paperDelegateMethods[i];
+
     D3RaphaelRoot.prototype[method_name] = d3_raphael_rootToPaperDelegate(method_name);
 };var d3_raphael_selection = function(groups, d3_raphael_root) {
     d3_arraySubclass(groups, d3_raphael_selectionPrototype);
@@ -4820,7 +4874,22 @@ for(var i = 0; i < d3_raphael_paperDelegateMethods.length; i++) {
 var d3_raphael_selectionPrototype = [];
 
 // todo: see if it is possible to generalize this method from the almost identical one in d3
-d3_raphael_selectionPrototype.data = function(value, key) {
+
+/**
+ * Binds the provided data to the selected Raphael element(s). <br />
+ * <br />
+ * IMPLEMENTATION NOTE: Usage identical to the native d3 version, except internally, instead of binding the data to the DOM objects (like d3 does),
+ * the data is bound to the Raphael wrapper element(s) of the DOM.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-data">d3.selection.data()</a>
+ * @param value
+ * @param {function} key_function
+ * @return {D3RaphaelUpdateSelection}
+ *
+ * @function
+ * @name D3RaphaelSelection#data
+ */
+d3_raphael_selectionPrototype.data = function(value, key_function) {
     var i = -1,
         n = this.length,
         group,
@@ -4849,14 +4918,14 @@ d3_raphael_selectionPrototype.data = function(value, key) {
             node,
             nodeData;
 
-        if (key) {
+        if (key_function) {
             var nodeByKeyValue = new d3_Map,
                 keyValues = [],
                 keyValue,
                 j = groupData.length;
 
             for (i = -1; ++i < n;) {
-                keyValue = key.call(node = group[i], node.__data__, i);
+                keyValue = key_function.call(node = group[i], node.__data__, i);
                 if (nodeByKeyValue.has(keyValue)) {
                     exitNodes[j++] = node; // duplicate key
                 } else {
@@ -4866,7 +4935,7 @@ d3_raphael_selectionPrototype.data = function(value, key) {
             }
 
             for (i = -1; ++i < m;) {
-                keyValue = key.call(groupData, nodeData = groupData[i], i)
+                keyValue = key_function.call(groupData, nodeData = groupData[i], i)
                 if (nodeByKeyValue.has(keyValue)) {
                     updateNodes[i] = node = nodeByKeyValue.get(keyValue);
                     node.__data__ = nodeData;
@@ -4933,11 +5002,49 @@ d3_raphael_selectionPrototype.data = function(value, key) {
         }
     }
 
+    /**
+     * Returns the entering selection: placeholder nodes for each data element for which no corresponding existing DOM element was found in the current selection.
+     *
+     * @return {D3RaphaelEnterSelection}
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-enter">d3.selection.enter()</a></code>
+     *
+     * @function
+     * @name D3RaphaelUpdateSelection#enter
+     */
     update.enter = function() { return enter; };
+
+    /**
+     * Returns the exiting selection: existing DOM elements in the current selection for which no new data element was found.
+     *
+     * @return {D3RaphaelSelection}
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-exit">d3.selection.exit()</a></code>
+     *
+     * @function
+     * @name D3RaphaelUpdateSelection#exit
+     */
     update.exit = function() { return exit; };
     return update;
 };
 
+/**
+ * Appends an element of the specified primitive type for each of the
+ * Raphael elements in the selection. <br />
+ * <br />
+ * NOTE: This method behaves similarly to the d3 version, except <strong>appended elements aren't children</strong>
+ * of the selection's existing elements.  In Raphael, all elements are in a flat list, peer to eachother, a child of
+ * the root containing element.
+ *
+ * @param {String} type
+ * @return {D3RaphaelSelection} with each existing element replaced with a appended element of the specified type.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-append">d3.selection.append()</a>
+ * @see d3_raphael_paperShapes for a list of supported primitive types
+ *
+ * @name D3RaphaelSelection#append
+ * @function
+ */
 d3_raphael_selectionPrototype.append = function(type) {
     var groups = [],
         group,
@@ -4963,6 +5070,29 @@ d3_raphael_selectionPrototype.append = function(type) {
     return d3_raphael_selection(groups, this.root);
 }
 
+/**
+ * Manipulates the Raphael elements in this selection by changing the specified attribute to
+ * the specified value.  <br/>
+ * <br/>
+ * Generally, it behaves similarly to the d3 version.  Like d3, the <code>value</code>
+ * parameter can be a function to provide an attribute value specific to each elements of the selection.<br />
+ * <br />
+ * In addition to the attributes supported natively by Raphael, there are few additions:
+ * <dl>
+ *     <dt>d</dt><dd>is an alias for Raphael attribute <code>path</code>. (Intended for compatibility with existing d3 code)</dd>
+ *     <dt>class</dt><dd>Sets the element's class name (like d3 does for the same attribute name)</dd>
+ * </dl>
+ *
+ * @param {String} name Raphael attribute name
+ * @param {value of function} value the value (or a function that returns the value) to change the attribute to
+ * @return {D3RaphaelSelection} this
+ *
+ * @see <a href="http://raphaeljs.com/reference.html#Element.attr">Raphael.element.attr()</a>
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-attr">d3.selection.attr()</a>
+ *
+ * @function
+ * @name D3RaphaelSelection#attr
+ */
 d3_raphael_selectionPrototype.attr = function(name, value) {
     var valueF = (typeof value === "function") ? value : function() { return value; };
     this.each(function() {
@@ -4981,6 +5111,21 @@ d3_raphael_selectionPrototype.attr = function(name, value) {
     return this;
 };
 
+/**
+ * Adds or removes the specified class name from the selections elements depending on the "truthness" of
+ * value. <br />
+ * <br />
+ * NOTE: Only adding class names is supported now, you cannot remove a class name currently with this method.
+ *
+ * @param {String} name class name
+ * @param {truthy or function} add
+ * @return {D3RaphaelSelection} this
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-classed">d3.selection.classed()</a>
+ *
+ * @function
+ * @name D3RaphaelSelection#classed
+ */
 d3_raphael_selectionPrototype.classed = function(name, add) {
     var addF = d3_raphael_functify(add);
 
@@ -4994,35 +5139,159 @@ d3_raphael_selectionPrototype.classed = function(name, add) {
     return this;
 }
 
+
+/**
+ * Changes the text of the selection's <code>text</code> elements. <br />
+ * <br />
+ * NOTE: <strong>This version behaves differently than the native d3 version,</strong> which changes the text content of the
+ * selection's DOM elements.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-_text">d3.selection.text()</a>
+ *
+ * @param value
+ * @return {D3RaphaelSelection} this
+ *
+ * @function
+ * @name D3RaphaelSelection#text
+ */
 d3_raphael_selectionPrototype.text = function(value) {
     var valueF = d3_raphael_functify(value);
 
     this.each(function() {
-        if(this.type !== "text")
-            throw ("Method 'text' not supported on Raphael element " + this.type);
-
         this.attr("text", valueF.apply(this, arguments));
     });
 
     return this;
 }
 
-
-d3_raphael_selectionPrototype.select = function(type, f) {
-    return this.root.select(type, f);
+/**
+ * Performs a selection testing _all_ the elements in the Raphael paper that match the specified type, returning a new selection
+ * with only the first element found (if any). <br />
+ * <br />
+ * NOTE: <strong>This method behaves differently than the native d3 version.</strong>  Since the Raphael paper
+ * is inherently a flat list of elements, there is no concept of a selection that is scoped by it's parent element
+ * (like in d3).  Thus, every call to <code>select</code> searches on all elements in the paper, regardless of the
+ * existing content of the selection. <br />
+ * <br />
+ * NOTE: Currently, the selector string is limited in features.  Right now, you can only specify the Raphael primitive
+ * type name you want to select, no other selector strings are supported (like css class name).
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-d3_select">d3.select()</a>
+ * @see d3_raphael_paperShapes for a list of supported primitive types
+ *
+ * @param {String} type Raphael primitive type name
+ * @return {D3RaphaelSelection} the new selection.
+ *
+ * @function
+ * @name D3RaphaelSelection#select
+ */
+d3_raphael_selectionPrototype.select = function(type) {
+    return this.root.select(type);
 };
 
-d3_raphael_selectionPrototype.selectAll = function(type, f) {
-    return this.root.selectAll(type, f);
+/**
+ * Performs a selection testing _all_ the elements in the Raphael paper that match the specified type, returning a new selection
+ * with the found elements (if any).<br />
+ * <br />
+ * NOTE: <strong>This method behaves differently than the native d3 version.</strong>  Since the Raphael paper
+ * is inherently a flat list of elements, there is no concept of a selection that is scoped by it's parent element
+ * (like in d3).  Thus, every call to <code>select</code> searches on all elements in the paper, regardless of the
+ * existing content of the selection. <br />
+ * <br />
+ * NOTE: Currently, the selector string is limited in features.  Right now, you can only specify the Raphael primitive
+ * type name you want to select, no other selector strings are supported (like css class name).
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-d3_selectAll">d3.selectAll()</a>
+ * @see d3_raphael_paperShapes for a list of supported primitive types
+ *
+ * @param {String} type Raphael primitive type name
+ * @return {D3RaphaelSelection} the new selection.
+ *
+ * @function
+ * @name D3RaphaelSelection#selectAll
+ */
+d3_raphael_selectionPrototype.selectAll = function(type) {
+    return this.root.selectAll(type);
 };
 
 
+/**
+ * Iterate over the elements of the selection, executing the specified function. <br />
+ * <br />
+ * NOTE: This method iterates over the Raphael created wrapper element (which internally contains the native DOM element,
+ * either SVG or VML via <code>element.node</code>.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-each">d3.selection.each()</a>
+ * @see <a href="http://raphaeljs.com/reference.html#Element">Raphael.Element</a>
+ *
+ * @param {function} callback <code>function(datum, index) { // this is the Raphael element }</code>
+ *
+ *  @function
+ *  @name D3RaphaelSelection#each
+ */
 d3_raphael_selectionPrototype.each = d3_selectionPrototype.each;
+
+/**
+ * Returns true if the current selection is empty.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-empty">d3.selection.empty()</a>
+ *
+ * @function
+ * @name D3RaphaelSelection#empty
+ */
 d3_raphael_selectionPrototype.empty = d3_selectionPrototype.empty;
+
+/**
+ * Returns the first non-null element in the current selection. If the selection is empty, returns null.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-node">d3.selection.node()</a>
+ *
+ * @function
+ * @name D3RaphaelSelection#node
+ */
 d3_raphael_selectionPrototype.node = d3_selectionPrototype.node;
+
+/**
+ * Sets arbitrary properties on the selections Raphael elements.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-property">d3.selection.property()</a>
+ * @see <a href="http://raphaeljs.com/reference.html#Element">Raphael.Element</a>
+ *
+ * @param {String} name property name
+ * @param value property value
+ * @return {D3RaphaelSelection} this
+ *
+ * @function
+ * @name D3RaphaelSelection#property
+ */
 d3_raphael_selectionPrototype.property = d3_selectionPrototype.property;
+
+/**
+ * Invokes the specified function once, passing in the current selection along with any optional arguments. The call operator always returns the current selection, regardless of the return value of the specified function.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-call">d3.selection.call()</a>
+ *
+ * @param {function} func
+ * @param {*} arguments optional arguments to pass to the function
+ *
+ * @function
+ * @name D3RaphaelSelection#call
+ */
 d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
-d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
+
+
+/**
+ * Gets or sets the bound data for each selection element.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-datum">d3.selection.datum()</a>
+ *
+ * @param {Array} value
+ * @return {D3RaphaelSelection} this
+ *
+ * @function
+ * @name D3RaphaelSelection#datum
+ */
+    d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
 
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.html = throw_raphael_not_supported;
@@ -5041,6 +5310,17 @@ function d3_raphael_enterSelection(groups, d3_raphael_root) {
 
 var d3_raphael_enterSelectionPrototype = [];
 
+/**
+ * See {@link D3RaphaelSelection#append}
+ *
+ * @param {string} type
+ * @return {D3RaphaelEnterSelection} this
+ *
+ * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-append">d3.selection.append()</a></code>
+ *
+ * @function
+ * @name D3RaphaelEnterSelection#append
+ */
 d3_raphael_enterSelectionPrototype.append = function(type) {
     if(d3_raphael_paperShapes.indexOf(type) < 0)
         throw TypeError("Type Not Supported");
@@ -5072,12 +5352,37 @@ d3_raphael_enterSelectionPrototype.append = function(type) {
     return d3_raphael_selection(groups, this.root);
 };
 
+/**
+ * See {@link D3RaphaelSelection#empty}
+ *
+ * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-empty">d3.selection.empty()</a></code>
+ *
+ * @function
+ * @name D3RaphaelEnterSelection#empty
+ */
 d3_raphael_enterSelectionPrototype.empty = d3_selectionPrototype.empty;
+
+/**
+ * See {@link D3RaphaelSelection#node}
+ *
+ * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-node">d3.selection.node()</a></code>
+ *
+ * @function
+ * @name D3RaphaelEnterSelection#node
+ */
 d3_raphael_enterSelectionPrototype.node = d3_selectionPrototype.node;
+
 d3_raphael_enterSelectionPrototype.insert = throw_raphael_not_supported;
 
 
 
+/**
+ * Constructs a Raphael axis renderer function.
+ *
+ * @return {D3RaphaelAxis}
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/SVG-Axes">d3.svg.axis</a>
+ */
 d3.raphael.axis = function() {
     var scale = d3.scale.linear(),
         orient = "bottom",
@@ -5215,18 +5520,53 @@ d3.raphael.axis = function() {
         })
     }
 
+    /**
+     * Get or set the associated scale. If scale is specified, sets the scale and returns the axis. If scale is not specified, returns the current scale which defaults to a linear scale.
+     *
+     * @param {d3.Scale} x scale
+     * @return {D3RaphaelAxis} this
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/SVG-Axes#wiki-axis_scale">d3.svg.axis().scale()</a></code>
+     *
+     * @function
+     * @name D3RaphaelAxis#scale
+     */
     axis.scale = function(x) {
         if (!arguments.length) return scale;
         scale = x;
         return axis;
     };
 
+    /**
+     * Get or set the axis orientation. If orientation is not specified, returns the current orientation, which defaults to "bottom".
+     *
+     * @param {String} x orientation, one of top, bottom, or left.  NOTE: right currently unsupported.  top/bottom for horizontal axis, and left for vertical.
+     * @return {D3RaphaelAxis} this
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/SVG-Axes#wiki-axis_orient">d3.svg.axis().orient()</a></code>
+     *
+     * @function
+     * @name D3RaphaelAxis#orient
+     */
     axis.orient = function(x) {
         if (!arguments.length) return orient;
         orient = x;
         return axis;
     };
 
+    /**
+     * Get or set the size of major, minor and end ticks.
+     *
+     * @param {Number} x major tick size
+     * @param {Number} y minor tick size (optional)
+     * @param {Number} z end tick size (optional)
+     * @return {D3RaphaelAxis} this
+     *
+     * @see <code><a href="https://github.com/mbostock/d3/wiki/SVG-Axes#wiki-axis_tickSize">d3.svg.axis().tickSize()</a></code>
+     *
+     * @function
+     * @name D3RaphaelAxis#tickSize
+     */
     axis.tickSize = function(x, y, z) {
         if (!arguments.length) return tickMajorSize;
         var n = arguments.length - 1;
@@ -5236,6 +5576,15 @@ d3.raphael.axis = function() {
         return axis;
     };
 
+    /**
+     * Get or set the top offset for axis rendering.  This is a work-around for the fact Raphael doesn't have a group element.
+     *
+     * @param {Number} val top offset, in pixels
+     * @return {D3RaphaelAxis} this
+     *
+     * @function
+     * @name D3RaphaelAxis#top
+     */
     axis.top = function(val) {
         if(typeof val === "undefined")
             return top;
@@ -5245,6 +5594,15 @@ d3.raphael.axis = function() {
         return this;
     }
 
+    /**
+     * Get or set the left offset for the axis rendering.  This is a work-around for the fact Raphael doesn't have a group element.
+     *
+     * @param {Number} val left offset, in pixels
+     * @return {D3RaphaelAxis} this
+     *
+     * @function
+     * @name D3RaphaelAxis#left
+     */
     axis.left = function(val) {
         if(typeof val === "undefined")
             return left;
@@ -5254,6 +5612,25 @@ d3.raphael.axis = function() {
         return this;
     }
 
+    /**
+     * Get or set the class name prefix appended to the class names used to differentiate parts of the rendered axis.<br />
+     * <br />
+     * Class name suffixes used internally are:
+     * <dl>
+     *     <dt>path</dt>
+     *     <dd>axis ticks</dd>
+     *     <dt>pathdomain</dt>
+     *     <dd>axis domain line (and end-ticks)</dd>
+     * </dl>
+     *
+     * So, for example, if you specified a class name prefix <code>xaxis_</code>, you would want to specify CSS selectors, <code>.xaxis_path</code> and <code>.xaxis_pathdomain</code>
+     *
+     * @param {String} val
+     * @return {D3RaphaelAxis} this
+     *
+     * @function
+     * @name D3RaphaelAxis#classPrefix
+     */
     axis.classPrefix = function(val) {
         if(typeof val === "undefined")
             return classPrefix;
