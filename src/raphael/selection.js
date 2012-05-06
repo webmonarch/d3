@@ -164,11 +164,16 @@ d3_raphael_selectionPrototype.data = function(value, key_function) {
 
 /**
  * Appends an element of the specified primitive type for each of the
- * Raphael elements in the selection.
+ * Raphael elements in the selection. <br />
+ * <br />
+ * NOTE: This method behaves similarly to the d3 version, except <strong>appended elements aren't children</strong>
+ * of the selection's existing elements.  In Raphael, all elements are in a flat list, peer to eachother, a child of
+ * the root containing element.
  *
  * @param {String} type
- * @return {D3RaphaelSelection} with the existing elements replaced with their corresponding appended element.
+ * @return {D3RaphaelSelection} with each existing element replaced with a appended element of the specified type.
  *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-append">d3.selection.append()</a>
  * @see d3_raphael_paperShapes for a list of supported primitive types
  *
  * @name D3RaphaelSelection#append
@@ -208,8 +213,8 @@ d3_raphael_selectionPrototype.append = function(type) {
  * <br />
  * In addition to the attributes supported natively by Raphael, there are few additions:
  * <dl>
- *     <dt>d</dt><dd>an alias for Raphael attribute <code>path</code>. (Intended for compatibility with existing d3 code)</dd>
- *     <dt>class</dt><dd>Add class metadata (like d3 does for the same attribute name)</dd>
+ *     <dt>d</dt><dd>is an alias for Raphael attribute <code>path</code>. (Intended for compatibility with existing d3 code)</dd>
+ *     <dt>class</dt><dd>Sets the element's class name (like d3 does for the same attribute name)</dd>
  * </dl>
  *
  * @param {String} name Raphael attribute name
@@ -275,6 +280,8 @@ d3_raphael_selectionPrototype.classed = function(name, add) {
  * NOTE: <strong>This version behaves differently than the native d3 version,</strong> which changes the text content of the
  * selection's DOM elements.
  *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-_text">d3.selection.text()</a>
+ *
  * @param value
  * @return {D3RaphaelSelection} this
  *
@@ -293,18 +300,18 @@ d3_raphael_selectionPrototype.text = function(value) {
 
 /**
  * Performs a selection testing _all_ the elements in the Raphael paper that match the specified type, returning a new selection
- * with the found first element (if any). <br />
+ * with only the first element found (if any). <br />
  * <br />
  * NOTE: <strong>This method behaves differently than the native d3 version.</strong>  Since the Raphael paper
  * is inherently a flat list of elements, there is no concept of a selection that is scoped by it's parent element
  * (like in d3).  Thus, every call to <code>select</code> searches on all elements in the paper, regardless of the
  * existing content of the selection. <br />
  * <br />
- * NOTE: Currently, the selector string is limited in features.  Currently, you can only specify the Raphael primitive
- * type name you want to select, no other selector strings are supported.
+ * NOTE: Currently, the selector string is limited in features.  Right now, you can only specify the Raphael primitive
+ * type name you want to select, no other selector strings are supported (like css class name).
  *
- * @see d3_raphael_paperShapes for a list of supported primitive types
  * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-d3_select">d3.select()</a>
+ * @see d3_raphael_paperShapes for a list of supported primitive types
  *
  * @param {String} type Raphael primitive type name
  * @return {D3RaphaelSelection} the new selection.
@@ -325,11 +332,11 @@ d3_raphael_selectionPrototype.select = function(type) {
  * (like in d3).  Thus, every call to <code>select</code> searches on all elements in the paper, regardless of the
  * existing content of the selection. <br />
  * <br />
- * NOTE: Currently, the selector string is limited in features.  Currently, you can only specify the Raphael primitive
- * type name you want to select, no other selector strings are supported.
+ * NOTE: Currently, the selector string is limited in features.  Right now, you can only specify the Raphael primitive
+ * type name you want to select, no other selector strings are supported (like css class name).
  *
- * @see d3_raphael_paperShapes for a list of supported primitive types
  * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-d3_selectAll">d3.selectAll()</a>
+ * @see d3_raphael_paperShapes for a list of supported primitive types
  *
  * @param {String} type Raphael primitive type name
  * @return {D3RaphaelSelection} the new selection.
@@ -408,7 +415,7 @@ d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
 
 
 /**
- * Gets or sets the bound data for each selected element.
+ * Gets or sets the bound data for each selection element.
  *
  * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-datum">d3.selection.datum()</a>
  *

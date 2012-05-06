@@ -160,7 +160,7 @@ d3.raphael.axis = function() {
     };
 
     /**
-     * Get or set the axis orientation. If orientation is specified, sets the axis orientation and returns the axis. If orientation is not specified, returns the current orientation, which defaults to "bottom".
+     * Get or set the axis orientation. If orientation is not specified, returns the current orientation, which defaults to "bottom".
      *
      * @param {String} x orientation, one of top, bottom, or left.  NOTE: right currently unsupported.  top/bottom for horizontal axis, and left for vertical.
      * @return {D3RaphaelAxis} this
@@ -237,7 +237,7 @@ d3.raphael.axis = function() {
     /**
      * Get or set the class name prefix appended to the class names used to differentiate parts of the rendered axis.<br />
      * <br />
-     * Class name suffixes used are:
+     * Class name suffixes used internally are:
      * <dl>
      *     <dt>path</dt>
      *     <dd>axis ticks</dd>
@@ -245,7 +245,7 @@ d3.raphael.axis = function() {
      *     <dd>axis domain line (and end-ticks)</dd>
      * </dl>
      *
-     * For example, if you have a class name prefix <code>xaxis_</code>, you would want to CSS style, <code>.xaxis_path</code> and <code>.xaxis_pathdomain</code>
+     * So, for example, if you specified a class name prefix <code>xaxis_</code>, you would want to specify CSS selectors, <code>.xaxis_path</code> and <code>.xaxis_pathdomain</code>
      *
      * @param {String} val
      * @return {D3RaphaelAxis} this

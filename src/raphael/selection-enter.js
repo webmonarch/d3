@@ -8,10 +8,11 @@ function d3_raphael_enterSelection(groups, d3_raphael_root) {
 var d3_raphael_enterSelectionPrototype = [];
 
 /**
+ * See {@link D3RaphaelSelection#append}
+ *
  * @param {string} type
  * @return {D3RaphaelEnterSelection} this
  *
- * @see D3RaphaelSelection#append
  * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-append">d3.selection.append()</a></code>
  *
  * @function
@@ -49,6 +50,8 @@ d3_raphael_enterSelectionPrototype.append = function(type) {
 };
 
 /**
+ * See {@link D3RaphaelSelection#empty}
+ *
  * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-empty">d3.selection.empty()</a></code>
  *
  * @function
@@ -57,7 +60,8 @@ d3_raphael_enterSelectionPrototype.append = function(type) {
 d3_raphael_enterSelectionPrototype.empty = d3_selectionPrototype.empty;
 
 /**
- * @see D3RaphaelSelection#node
+ * See {@link D3RaphaelSelection#node}
+ *
  * @see <code><a href="https://github.com/mbostock/d3/wiki/Selections#wiki-node">d3.selection.node()</a></code>
  *
  * @function
