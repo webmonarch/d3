@@ -18,5 +18,5 @@ trap "" TERM # ignore TERM signal since the pgrep below seems to find us
 while inotifywait src/raphael/ -e create -e modify -e delete -qq; do 
 	kill -TERM -`pgrep make_docs`
 	echo "Building `timestamp`..."
-	./make_docs & 
+	./make_docs && echo "done." & 
 done
