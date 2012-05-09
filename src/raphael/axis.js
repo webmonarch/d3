@@ -177,6 +177,17 @@ d3.raphael.axis = function() {
     };
 
     /**
+     * TODO document
+     *
+     * @return {*}
+     */
+    axis.ticks = function() {
+        if (!arguments.length) return tickArguments_;
+        tickArguments_ = arguments;
+        return axis;
+    };
+
+    /**
      * Get or set the size of major, minor and end ticks.
      *
      * @param {Number} x major tick size
