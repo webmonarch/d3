@@ -4735,6 +4735,18 @@ if(typeof Raphael !== "undefined") {
         return attributes;
     }
 
+    function d3_raphael_addClassesToClassName(className, addClass) {
+        // adapted from jQuery addClass()
+        var addClasses = addClass.split(' ');
+
+        var setClass = ' ' + className + ' ';
+        for (var i = -1, m = addClasses.length; ++i < m;) {
+            if (!~setClass.indexOf(' ' + addClasses[i] + ' ')) {
+                setClass += addClasses[i] + ' ';
+            }
+        }
+        return setClass.slice(1, -1);
+    }
 
     Raphael.st.addClass = function(addClass, parentSelector) {
         //Simple set Attribute class if SVG
@@ -4750,6 +4762,7 @@ if(typeof Raphael !== "undefined") {
             var attributes = d3_raphael_getCSSAttributes(sel);
             for (var i = 0; i < this.length; i++) {
                 this[i].attr(attributes);
+                this[i].node.className = d3_raphael_addClassesToClassName(this[i].node.className, addClass);
             }
         }
     }
@@ -4767,9 +4780,11 @@ if(typeof Raphael !== "undefined") {
 
             var attributes = d3_raphael_getCSSAttributes(sel);
             this.attr(attributes);
+            this.node.className = d3_raphael_addClassesToClassName(this.node.className, addClass);
         }
     }
-}if(typeof Raphael !== "undefined") {
+}
+if(typeof Raphael !== "undefined") {
     // adds a Raphael custom attribute "d" which maps to "path"
     // in d3/svg, the definition of a path is specified via attribute "d",
     // in raphael, it's specified via attribute "path".
