@@ -5291,7 +5291,20 @@ d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
  * @function
  * @name D3RaphaelSelection#datum
  */
-    d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
+d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
+
+/**
+ * Removes each instance of the selection element.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-remove">d3.selection.remove()</a>
+ *
+ * @param {Array} value
+ * @return {D3RaphaelSelection} this
+ *
+ * @function
+ * @name D3RaphaelSelection#remove
+ */
+d3_raphael_selectionPrototype.remove = d3_selectionPrototype.remove;
 
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.html = throw_raphael_not_supported;
@@ -5301,6 +5314,7 @@ d3_raphael_selectionPrototype.sort = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.order = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.on = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.transition = throw_raphael_not_supported;
+
 function d3_raphael_enterSelection(groups, d3_raphael_root) {
     d3_arraySubclass(groups, d3_raphael_enterSelectionPrototype);
     groups.root = d3_raphael_root;
