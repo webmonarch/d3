@@ -4799,11 +4799,58 @@ if(typeof Raphael !== "undefined") {
     // adds selection.attr("class",...) support
     // see raphaelselection.attr
 }
-function d3_raphael_type_selector(type, d3_paper, first) {
+
+// manual selector
+function d3_raphael_selector(s, d3_paper, first) {
     var found = [];
 
+    var selectorParts = s.split('.');
+
+    // get elem type if supplied
+    var type = null;
+    if (selectorParts[0] === '') {
+        if (selectorParts.length === 1) {
+            selectorParts = []; // blank string was passed
+        } else {
+            selectorParts.shift(); // starts with dot; discard empty string
+        }
+    } else {
+        type = selectorParts.shift();
+    }
+
+    // rename for clarity; above code leaves requiredClasses
+    var requiredClasses = selectorParts;
+
+    // check function
+    var isMatch = function(el) {
+        // check type if necessary
+        if (type && (el.type !== type)) {
+            return false;
+        }
+
+        // check classes if necessary
+        var classAttribute = el.node.getAttribute('class');
+        var elClassIndex = {};
+        if (classAttribute) {
+            var elClasses = classAttribute.split(' ');
+            for (var i = -1, m = elClasses.length; ++i < m;)
+            {
+                elClassIndex[elClasses[i]] = true;
+            }
+        }
+
+        for (var i = -1, m = requiredClasses.length; ++i < m;) {
+            if (!elClassIndex[requiredClasses[i]]) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    // actually check
     d3_paper.forEach(function(el) {
-        if(el.type === type) {
+        if(isMatch(el)) {
             found.push(el);
 
             return !first; // break forEach for first only requests
@@ -4811,7 +4858,9 @@ function d3_raphael_type_selector(type, d3_paper, first) {
     })
 
     return found;
-};/**
+};
+
+/**
  * A d3 container for the Raphael paper, with delegate helpers to Raphael and select/selectAll functionality.
  *
  * @param paper
@@ -4827,24 +4876,24 @@ var D3RaphaelRoot = function(paper) {
 /**
  * Performs a select on the elements in the Raphael paper.
  *
- * @param {String} type raphael selector string (currently limited to a Raphael primitive type name, ie: rect, circle, ellipse, text, and path)
+ * @param {String} raphael selector string; supports primitive type name and css classes.
  * @return {D3RaphaelSelection}
  * @private
  * @version Internal; Subject to change
  */
-D3RaphaelRoot.prototype.select = function(type) {
-    return d3_raphael_selection([d3_raphael_type_selector(type, this, true)], this)
+D3RaphaelRoot.prototype.select = function(s) {
+    return d3_raphael_selection([d3_raphael_type_selector(s, this, true)], this)
 };
 
 /**
  * Performs a selectAll on the elements in the Raphael paper.
  *
- * @param {String} type raphael selector string (currently limited to a Raphael primitive type name, ie: rect, circle, ellipse, text, and path)
+ * @param {String} raphael selector string; supports primitive type name and css classes.
  * @return {D3RaphaelSelection}
  * @private
  */
-D3RaphaelRoot.prototype.selectAll = function(type) {
-    return d3_raphael_selection([d3_raphael_type_selector(type, this, false)], this)
+D3RaphaelRoot.prototype.selectAll = function(s) {
+    return d3_raphael_selection([d3_raphael_type_selector(s, this, false)], this)
 };
 
 /**
@@ -4879,7 +4928,8 @@ for(var i = 0; i < d3_raphael_paperDelegateMethods.length; i++) {
     var method_name = d3_raphael_paperDelegateMethods[i];
 
     D3RaphaelRoot.prototype[method_name] = d3_raphael_rootToPaperDelegate(method_name);
-};var d3_raphael_selection = function(groups, d3_raphael_root) {
+};
+var d3_raphael_selection = function(groups, d3_raphael_root) {
     d3_arraySubclass(groups, d3_raphael_selectionPrototype);
     groups.root = d3_raphael_root;
 
@@ -5188,8 +5238,7 @@ d3_raphael_selectionPrototype.text = function(value) {
  * (like in d3).  Thus, every call to <code>select</code> searches on all elements in the paper, regardless of the
  * existing content of the selection. <br />
  * <br />
- * NOTE: Currently, the selector string is limited in features.  Right now, you can only specify the Raphael primitive
- * type name you want to select, no other selector strings are supported (like css class name).
+ * NOTE: Currently, the selector string supports only element type and class names.
  *
  * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-d3_select">d3.select()</a>
  * @see d3_raphael_paperShapes for a list of supported primitive types
@@ -5200,8 +5249,8 @@ d3_raphael_selectionPrototype.text = function(value) {
  * @function
  * @name D3RaphaelSelection#select
  */
-d3_raphael_selectionPrototype.select = function(type) {
-    return this.root.select(type);
+d3_raphael_selectionPrototype.select = function(s) {
+    return this.root.select(s);
 };
 
 /**
@@ -5213,8 +5262,7 @@ d3_raphael_selectionPrototype.select = function(type) {
  * (like in d3).  Thus, every call to <code>select</code> searches on all elements in the paper, regardless of the
  * existing content of the selection. <br />
  * <br />
- * NOTE: Currently, the selector string is limited in features.  Right now, you can only specify the Raphael primitive
- * type name you want to select, no other selector strings are supported (like css class name).
+ * NOTE: Currently, the selector string supports only element type and class names.
  *
  * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-d3_selectAll">d3.selectAll()</a>
  * @see d3_raphael_paperShapes for a list of supported primitive types
@@ -5225,8 +5273,8 @@ d3_raphael_selectionPrototype.select = function(type) {
  * @function
  * @name D3RaphaelSelection#selectAll
  */
-d3_raphael_selectionPrototype.selectAll = function(type) {
-    return this.root.selectAll(type);
+d3_raphael_selectionPrototype.selectAll = function(s) {
+    return this.root.selectAll(s);
 };
 
 
