@@ -338,7 +338,25 @@ d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
  * @function
  * @name D3RaphaelSelection#datum
  */
-    d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
+d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
+
+/**
+ * Starts a transition selection.
+ *
+ * @return {D3RaphaelTransitionSelection} transition selection
+ *
+ * @function
+ * @name D3RaphaelSelection#transition
+ */
+d3_raphael_selectionPrototype.transition = function() {
+    // minor hack to sub out the dependency we want to inject.
+    var old_d3_transitionPrototype = d3_transitionPrototype;
+    d3_transitionPrototype = d3_raphael_transitionPrototype;
+    var transition = d3_selectionPrototype.transition.call(this);
+    d3_transitionPrototype = old_d3_transitionPrototype;
+
+    return transition;
+};
 
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.html = throw_raphael_not_supported;
@@ -347,4 +365,3 @@ d3_raphael_selectionPrototype.filter = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.sort = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.order = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.on = throw_raphael_not_supported;
-d3_raphael_selectionPrototype.transition = throw_raphael_not_supported;

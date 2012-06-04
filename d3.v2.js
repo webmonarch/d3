@@ -5204,7 +5204,25 @@ d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
  * @function
  * @name D3RaphaelSelection#datum
  */
-    d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
+d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
+
+/**
+ * Starts a transition selection.
+ *
+ * @return {D3RaphaelTransitionSelection} transition selection
+ *
+ * @function
+ * @name D3RaphaelSelection#transition
+ */
+d3_raphael_selectionPrototype.transition = function() {
+    // minor hack to sub out the dependency we want to inject.
+    var old_d3_transitionPrototype = d3_transitionPrototype;
+    d3_transitionPrototype = d3_raphael_transitionPrototype;
+    var transition = d3_selectionPrototype.transition.call(this);
+    d3_transitionPrototype = old_d3_transitionPrototype;
+
+    return transition;
+};
 
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.html = throw_raphael_not_supported;
@@ -5213,7 +5231,6 @@ d3_raphael_selectionPrototype.filter = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.sort = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.order = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.on = throw_raphael_not_supported;
-d3_raphael_selectionPrototype.transition = throw_raphael_not_supported;
 function d3_raphael_enterSelection(groups, d3_raphael_root) {
     d3_arraySubclass(groups, d3_raphael_enterSelectionPrototype);
     groups.root = d3_raphael_root;
@@ -5288,6 +5305,96 @@ d3_raphael_enterSelectionPrototype.node = d3_selectionPrototype.node;
 d3_raphael_enterSelectionPrototype.insert = throw_raphael_not_supported;
 
 
+
+var d3_raphael_transitionPrototype = [];
+
+/**
+ * Specifies an attribute to be animated.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-attr">d3.selection.attr()</a>
+ * @param {String} name property name
+ * @param value property value
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#attr
+ */
+d3_raphael_transitionPrototype.attr = d3_transitionPrototype.attr;
+
+d3_raphael_transitionPrototype.attrTween = function(name, tween) {
+    function attrTween(d, i) {
+        var f = tween.call(this, d, i, this.attr(name));
+        return f === d3_transitionRemove
+            ? (this.attr(name, null), null)
+            : f && function(t) { this.attr(name, f(t)); };
+    }
+
+    return this.tween('attr.' + name, attrTween);
+};
+
+/**
+ * Specifies an amount of time to delay before transitioning.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Transition#wiki-delay">transition.delay()</a>
+ * @param value delay in ms
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#delay
+ */
+d3_raphael_transitionPrototype.delay = d3_transitionPrototype.duration;
+
+/**
+ * Specifies a duration for the transition.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Transition#wiki-duration">transition.duration()</a>
+ * @param value length in ms
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#duration
+ */
+d3_raphael_transitionPrototype.duration = d3_transitionPrototype.duration;
+
+/**
+ * Specifies a transition easing function.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Transition#wiki-ease">transition.ease()</a>
+ * @param value string or function
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#ease
+ */
+d3_raphael_transitionPrototype.duration = d3_transitionPrototype.duration;
+
+/**
+ * Sets the text content when the transition begins.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-text">d3.selection.text()</a>
+ * @param value property value
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#text
+ */
+d3_raphael_transitionPrototype.text = d3_raphael_selectionPrototype.text;
+
+/**
+ * Removes elements after transitions are completed.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Transition#wiki-remove">transition.remove()</a>
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#remove
+ */
+d3_raphael_transitionPrototype.remove = d3_transitionPrototype.remove;
+
+d3_raphael_transitionPrototype.style = throw_raphael_not_supported;
+d3_raphael_transitionPrototype.styleTween = throw_raphael_not_supported;
+d3_raphael_transitionPrototype.select = throw_raphael_not_supported;
+d3_raphael_transitionPrototype.selectAll = throw_raphael_not_supported;
 
 /**
  * Constructs a Raphael axis renderer function.
