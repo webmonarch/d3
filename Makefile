@@ -162,6 +162,7 @@ d3.raphael.js: \
 	src/raphael/root.js \
 	src/raphael/selection.js \
 	src/raphael/selection-enter.js \
+	src/raphael/selection-transition.js \
 	src/raphael/axis.js
 
 d3.behavior.js: \
