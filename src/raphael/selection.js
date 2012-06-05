@@ -209,7 +209,70 @@ d3_raphael_selectionPrototype.text = function(value) {
     });
 
     return this;
-}
+};
+
+var d3_raphael_supported_event_types = [
+    'click', 'dblclick', 'mousedown', 'mousemove', 'mouseout', 'mouseover', 'mouseup',
+    'touchcancel', 'touchend', 'touchmove', 'touchstart'
+];
+
+/**
+ * Add or remove event listeners for interation. <strong>Note that since we're not using DOM
+ * Elements, the capture param is not supported.</strong>
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-on">d3.selection.on()</a>
+ *
+ * @param value
+ * @return {D3RaphaelSelection} this
+ *
+ * @function
+ * @name D3RaphaelSelection#on
+ */
+d3_raphael_selectionPrototype.on = function(type, handler, capture) {
+    // capture doesn't make sense in Raphael's flat-hierarchy context
+    if (capture) throw_raphael_not_supported();
+
+    // because of the way we're binding, only support raphael-provided events
+    if (!~d3_raphael_supported_event_types.indexOf(type)) {
+        throw_raphael_not_supported();
+    }
+
+    // parse the type specifier
+    var name = '__d34r_on' + type, i = type.indexOf('.');
+    if (i > 0) type = type.substring(0, i);
+
+    // if called with only one argument, return the current listener
+    if (arguments.length < 2) return (i = this.node[name]) && i._;
+
+    return this.each(function(d, i) {
+        var raphaelElement = this,
+            o = raphaelElement[name];
+
+        // remove the old handler, if any (using the previously-set capture)
+        if (o) {
+            raphaelElement['un' + type](o);
+            delete raphaelElement[name];
+        }
+
+        // add the new handler, if any
+        if (handler) {
+            // wrapped handler that preserves i
+            var wrappedHandler = function (event) {
+                var o = d3.event; // Events can be reentrant (e.g., focus).
+                d3.event = event;
+                try {
+                    handler.call(raphaelElement, raphaelElement.__data__, i);
+                } finally {
+                    d3.event = o;
+                }
+            };
+
+            raphaelElement[type](wrappedHandler);
+            wrappedHandler._ = handler; // stash the unwrapped handler for get
+            raphaelElement[name] = wrappedHandler;
+        }
+    });
+};
 
 /**
  * Performs a selection testing _all_ the elements in the Raphael paper that match the specified type, returning a new selection
@@ -375,5 +438,4 @@ d3_raphael_selectionPrototype.insert = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.filter = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.sort = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.order = throw_raphael_not_supported;
-d3_raphael_selectionPrototype.on = throw_raphael_not_supported;
 
