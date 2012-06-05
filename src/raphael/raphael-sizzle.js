@@ -4,7 +4,7 @@ if (typeof Sizzle === "function") {
     // lookup to translate dom nodes to raphael objs
     var d3_raphael_obj_from_dom = function(domElems, d3_paper) {
         // don't do a paper.getById for every elem because that's n^2.
-        // traverse the linked list ourselves. still m*n, but oh well.
+        // traverse the linked list ourselves. still m+n, but oh well.
 
         var elemCount = domElems.length;
 

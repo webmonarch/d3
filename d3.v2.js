@@ -4809,12 +4809,12 @@ function d3_raphael_selector(s, d3_paper, first) {
     // get elem type if supplied
     var type = null;
     if (selectorParts[0] === '') {
-        if (selectorParts.length === 1) {
-            selectorParts = []; // blank string was passed
-        } else {
-            selectorParts.shift(); // starts with dot; discard empty string
-        }
+        // either selectorParts is [''] meaning it was a blank string, or
+        // it starts with '' which means we started with a dot. either way
+        // discard the first element and things resolve.
+        selectorParts.shift();
     } else {
+        // first element is actually a string, meaning it's a type selector.
         type = selectorParts.shift();
     }
 
@@ -4829,19 +4829,21 @@ function d3_raphael_selector(s, d3_paper, first) {
         }
 
         // check classes if necessary
-        var classAttribute = el.node.getAttribute('class');
-        var elClassIndex = {};
-        if (classAttribute) {
-            var elClasses = classAttribute.split(' ');
-            for (var i = -1, m = elClasses.length; ++i < m;)
-            {
-                elClassIndex[elClasses[i]] = true;
+        if (requiredClasses.length > 0) {
+            var classAttribute = el.node.getAttribute('class');
+            var elClassIndex = {};
+            if (classAttribute) {
+                var elClasses = classAttribute.split(' ');
+                for (var i = -1, m = elClasses.length; ++i < m;)
+                {
+                    elClassIndex[elClasses[i]] = true;
+                }
             }
-        }
 
-        for (var i = -1, m = requiredClasses.length; ++i < m;) {
-            if (!elClassIndex[requiredClasses[i]]) {
-                return false;
+            for (var i = -1, m = requiredClasses.length; ++i < m;) {
+                if (!elClassIndex[requiredClasses[i]]) {
+                    return false;
+                }
             }
         }
 
@@ -5721,7 +5723,7 @@ if (typeof Sizzle === "function") {
     // lookup to translate dom nodes to raphael objs
     var d3_raphael_obj_from_dom = function(domElems, d3_paper) {
         // don't do a paper.getById for every elem because that's n^2.
-        // traverse the linked list ourselves. still m*n, but oh well.
+        // traverse the linked list ourselves. still m+n, but oh well.
 
         var elemCount = domElems.length;
 
