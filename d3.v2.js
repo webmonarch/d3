@@ -4957,117 +4957,28 @@ var d3_raphael_selectionPrototype = [];
  * @name D3RaphaelSelection#data
  */
 d3_raphael_selectionPrototype.data = function(value, key_function) {
-    var i = -1,
-        n = this.length,
-        group,
-        node;
+    // kind of a hack, but saves a lot of code duplication; sub out the
+    // built-in selection calls for our own for the duration of the inner call.
 
-    // If no value is specified, return the first value.
-    if (!arguments.length) {
-        value = new Array(n = (group = this[0]).length);
-        while (++i < n) {
-            if (node = group[i]) {
-                value[i] = node.__data__;
-            }
-        }
-        return value;
-    }
+    // save old
+    var old_d3_selection_enter = d3_selection_enter,
+        old_d3_selection = d3_selection;
 
-    function bind(group, groupData) {
-        var i,
-            n = group.length,
-            m = groupData.length,
-            n0 = Math.min(n, m),
-            n1 = Math.max(n, m),
-            updateNodes = [],
-            enterNodes = [],
-            exitNodes = [],
-            node,
-            nodeData;
+    // sub in
+    var selection = this;
+    d3_selection_enter = function(elems) {
+        return d3_raphael_enterSelection(elems, selection.root);
+    };
+    d3_selection = function(elems) {
+        return d3_raphael_selection(elems, selection.root);
+    };
 
-        if (key_function) {
-            var nodeByKeyValue = new d3_Map,
-                keyValues = [],
-                keyValue,
-                j = groupData.length;
+    // actual call
+    var update = d3_selectionPrototype.data.call(this, value, key_function);
 
-            for (i = -1; ++i < n;) {
-                keyValue = key_function.call(node = group[i], node.__data__, i);
-                if (nodeByKeyValue.has(keyValue)) {
-                    exitNodes[j++] = node; // duplicate key
-                } else {
-                    nodeByKeyValue.set(keyValue, node);
-                }
-                keyValues.push(keyValue);
-            }
-
-            for (i = -1; ++i < m;) {
-                keyValue = key_function.call(groupData, nodeData = groupData[i], i)
-                if (nodeByKeyValue.has(keyValue)) {
-                    updateNodes[i] = node = nodeByKeyValue.get(keyValue);
-                    node.__data__ = nodeData;
-                    enterNodes[i] = exitNodes[i] = null;
-                } else {
-                    enterNodes[i] = d3_selection_dataNode(nodeData);
-                    updateNodes[i] = exitNodes[i] = null;
-                }
-                nodeByKeyValue.remove(keyValue);
-            }
-
-            for (i = -1; ++i < n;) {
-                if (nodeByKeyValue.has(keyValues[i])) {
-                    exitNodes[i] = group[i];
-                }
-            }
-        } else {
-            for (i = -1; ++i < n0;) {
-                node = group[i];
-                nodeData = groupData[i];
-                if (node) {
-                    node.__data__ = nodeData;
-                    updateNodes[i] = node;
-                    enterNodes[i] = exitNodes[i] = null;
-                } else {
-                    enterNodes[i] = d3_selection_dataNode(nodeData);
-                    updateNodes[i] = exitNodes[i] = null;
-                }
-            }
-            for (; i < m; ++i) {
-                enterNodes[i] = d3_selection_dataNode(groupData[i]);
-                updateNodes[i] = exitNodes[i] = null;
-            }
-            for (; i < n1; ++i) {
-                exitNodes[i] = group[i];
-                enterNodes[i] = updateNodes[i] = null;
-            }
-        }
-
-        enterNodes.update
-            = updateNodes;
-
-        enterNodes.parentNode
-            = updateNodes.parentNode
-            = exitNodes.parentNode
-            = group.parentNode;
-
-        enter.push(enterNodes);
-        update.push(updateNodes);
-        exit.push(exitNodes);
-    }
-
-    var enter = d3_raphael_enterSelection([], this.root),
-        update = d3_raphael_selection([], this.root),
-        exit = d3_raphael_selection([], this.root);
-
-    if (typeof value === "function") {
-        while (++i < n) {
-            bind(group = this[i], value.call(group, group.parentNode.__data__, i));
-        }
-    } else {
-        while (++i < n) {
-            bind(group = this[i], value);
-        }
-    }
+    // sub out
+    d3_selection_enter = old_d3_selection_enter;
+    d3_selection = old_d3_selection;
 
     /**
      * Returns the entering selection: placeholder nodes for each data element for which no corresponding existing DOM element was found in the current selection.
@@ -5079,7 +4990,8 @@ d3_raphael_selectionPrototype.data = function(value, key_function) {
      * @function
      * @name D3RaphaelUpdateSelection#enter
      */
-    update.enter = function() { return enter; };
+    var enter = update.enter;
+    update.enter = function() { return enter(); };
 
     /**
      * Returns the exiting selection: existing DOM elements in the current selection for which no new data element was found.
@@ -5091,7 +5003,8 @@ d3_raphael_selectionPrototype.data = function(value, key_function) {
      * @function
      * @name D3RaphaelUpdateSelection#exit
      */
-    update.exit = function() { return exit; };
+    var exit = update.exit;
+    update.exit = function() { return exit(); };
     return update;
 };
 
@@ -5371,6 +5284,24 @@ d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
  */
 d3_raphael_selectionPrototype.remove = d3_selectionPrototype.remove;
 
+/**
+ * Starts a transition selection.
+ *
+ * @return {D3RaphaelTransitionSelection} transition selection
+ *
+ * @function
+ * @name D3RaphaelSelection#transition
+ */
+d3_raphael_selectionPrototype.transition = function() {
+    // minor hack to sub out the dependency we want to inject.
+    var old_d3_transitionPrototype = d3_transitionPrototype;
+    d3_transitionPrototype = d3_raphael_transitionPrototype;
+    var transition = d3_selectionPrototype.transition.call(this);
+    d3_transitionPrototype = old_d3_transitionPrototype;
+
+    return transition;
+};
+
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.html = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.insert = throw_raphael_not_supported;
@@ -5378,7 +5309,6 @@ d3_raphael_selectionPrototype.filter = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.sort = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.order = throw_raphael_not_supported;
 d3_raphael_selectionPrototype.on = throw_raphael_not_supported;
-d3_raphael_selectionPrototype.transition = throw_raphael_not_supported;
 
 function d3_raphael_enterSelection(groups, d3_raphael_root) {
     d3_arraySubclass(groups, d3_raphael_enterSelectionPrototype);
@@ -5454,6 +5384,134 @@ d3_raphael_enterSelectionPrototype.node = d3_selectionPrototype.node;
 d3_raphael_enterSelectionPrototype.insert = throw_raphael_not_supported;
 
 
+
+var d3_raphael_transitionPrototype = [];
+
+/**
+ * Specifies an attribute to be animated.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-attr">d3.selection.attr()</a>
+ * @param {String} name property name
+ * @param value property value
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#attr
+ */
+d3_raphael_transitionPrototype.attr = d3_transitionPrototype.attr;
+
+d3_raphael_transitionPrototype.attrTween = function(name, tween) {
+    function attrTween(d, i) {
+        var f = tween.call(this, d, i, this.attr(name));
+        return f === d3_transitionRemove
+            ? (this.attr(name, null), null)
+            : f && function(t) { this.attr(name, f(t)); };
+    }
+
+    return this.tween('attr.' + name, attrTween);
+};
+
+/**
+ * Specifies an amount of time to delay before transitioning.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Transition#wiki-delay">transition.delay()</a>
+ * @param value delay in ms
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#delay
+ */
+d3_raphael_transitionPrototype.delay = d3_transitionPrototype.duration;
+
+/**
+ * Specifies a duration for the transition.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Transition#wiki-duration">transition.duration()</a>
+ * @param value length in ms
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#duration
+ */
+d3_raphael_transitionPrototype.duration = d3_transitionPrototype.duration;
+
+/**
+ * Specifies a transition easing function.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Transition#wiki-ease">transition.ease()</a>
+ * @param value string or function
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#ease
+ */
+d3_raphael_transitionPrototype.duration = d3_transitionPrototype.duration;
+
+/**
+ * Sets the text content when the transition begins.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-text">d3.selection.text()</a>
+ * @param value property value
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#text
+ */
+d3_raphael_transitionPrototype.text = d3_raphael_selectionPrototype.text;
+
+/**
+ * Removes elements after transitions are completed.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Transition#wiki-remove">transition.remove()</a>
+ * @return {D3RaphaelTransitionSelection} this
+ *
+ * @function
+ * @name D3RaphaelTransitionSelection#remove
+ */
+d3_raphael_transitionPrototype.remove = d3_transitionPrototype.remove;
+
+d3_raphael_transitionPrototype.style = throw_raphael_not_supported;
+d3_raphael_transitionPrototype.styleTween = throw_raphael_not_supported;
+d3_raphael_transitionPrototype.select = throw_raphael_not_supported;
+d3_raphael_transitionPrototype.selectAll = throw_raphael_not_supported;
+
+// Prefer Sizzle, if available
+if (typeof Sizzle === "function") {
+
+    // lookup to translate dom nodes to raphael objs
+    var d3_raphael_obj_from_dom = function(domElems, d3_paper) {
+        // don't do a paper.getById for every elem because that's n^2.
+        // traverse the linked list ourselves. still m+n, but oh well.
+
+        var elemCount = domElems.length;
+
+        // but first build an index of ids we're looking for
+        var domElemIndex = {};
+        for (var i = -1; ++i < elemCount;) {
+            var domElem = domElems[i];
+            domElemIndex[domElem.raphaelid] = true;
+        }
+
+        var raphaelElems = [];
+        var bot = d3_paper.paper.bottom;
+        while (bot && (raphaelElems.length < elemCount)) {
+            if (domElemIndex[bot.id]) {
+                raphaelElems.push(bot);
+            }
+            bot = bot.next;
+        }
+        return raphaelElems;
+    };
+
+    // override root functions
+    D3RaphaelRoot.prototype.select = function(s) {
+        return d3_raphael_selection([d3_raphael_obj_from_dom(Sizzle(s, this.paper.canvas)[0], this)], this);
+    };
+    D3RaphaelRoot.prototype.selectAll = function(s) {
+        return d3_raphael_selection([d3_raphael_obj_from_dom(Sizzle.uniqueSort(Sizzle(s, this.paper.canvas)), this)], this);
+    };
+
+}
 
 /**
  * Constructs a Raphael axis renderer function.
@@ -5731,45 +5789,7 @@ d3.raphael.axis = function() {
     }
 
     return axis;
-};// Prefer Sizzle, if available
-if (typeof Sizzle === "function") {
-
-    // lookup to translate dom nodes to raphael objs
-    var d3_raphael_obj_from_dom = function(domElems, d3_paper) {
-        // don't do a paper.getById for every elem because that's n^2.
-        // traverse the linked list ourselves. still m+n, but oh well.
-
-        var elemCount = domElems.length;
-
-        // but first build an index of ids we're looking for
-        var domElemIndex = {};
-        for (var i = -1; ++i < elemCount;) {
-            var domElem = domElems[i];
-            domElemIndex[domElem.raphaelid] = true;
-        }
-
-        var raphaelElems = [];
-        var bot = d3_paper.paper.bottom;
-        while (bot && (raphaelElems.length < elemCount)) {
-            if (domElemIndex[bot.id]) {
-                raphaelElems.push(bot);
-            }
-            bot = bot.next;
-        }
-        return raphaelElems;
-    };
-
-    // override root functions
-    D3RaphaelRoot.prototype.select = function(s) {
-        return d3_raphael_selection([d3_raphael_obj_from_dom(Sizzle(s, this.paper.canvas)[0], this)], this);
-    };
-    D3RaphaelRoot.prototype.selectAll = function(s) {
-        return d3_raphael_selection([d3_raphael_obj_from_dom(Sizzle.uniqueSort(Sizzle(s, this.paper.canvas)), this)], this);
-    };
-
-}
-
-d3.behavior = {};
+};d3.behavior = {};
 // TODO Track touch points by identifier.
 
 d3.behavior.drag = function() {
