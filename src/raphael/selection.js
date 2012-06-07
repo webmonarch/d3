@@ -412,7 +412,9 @@ d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
  * @function
  * @name D3RaphaelSelection#remove
  */
-d3_raphael_selectionPrototype.remove = d3_selectionPrototype.remove;
+d3_raphael_selectionPrototype.remove = function() {
+    return this.each(function() { this.remove(); });
+};
 
 /**
  * Starts a transition selection.
