@@ -20,7 +20,7 @@ var D3RaphaelRoot = function(paper) {
  * @version Internal; Subject to change
  */
 D3RaphaelRoot.prototype.select = function(s) {
-    return d3_raphael_selection([d3_raphael_type_selector(s, this, true)], this)
+    return d3_raphael_selection([d3_raphael_selector(s, this, true)], this)
 };
 
 /**
@@ -31,7 +31,7 @@ D3RaphaelRoot.prototype.select = function(s) {
  * @private
  */
 D3RaphaelRoot.prototype.selectAll = function(s) {
-    return d3_raphael_selection([d3_raphael_type_selector(s, this, false)], this)
+    return d3_raphael_selection([d3_raphael_selector(s, this, false)], this)
 };
 
 /**
