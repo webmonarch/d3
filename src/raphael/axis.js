@@ -208,6 +208,19 @@ d3.raphael.axis = function() {
         tickEndSize = n > 0 ? +arguments[n] : tickMajorSize;
         return axis;
     };
+    
+    /**
+     * Get or set the preset tick values. 
+     * 
+     * @param {Number[]} The tick values to use.
+     * 
+     * @return {D3RaphaelAxis} this
+     */
+    axis.tickValues = function(x){
+        if (!arguments.length) return tickValues;
+        tickValues = x;
+        return axis;
+    }
 
     /**
      * Get or set the top offset for axis rendering.  This is a work-around for the fact Raphael doesn't have a group element.
