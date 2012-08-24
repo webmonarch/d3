@@ -186,6 +186,18 @@ d3.raphael.axis = function() {
         tickArguments_ = arguments;
         return axis;
     };
+    
+    /**
+     * Get or set the format for axis tick values. 
+     * 
+     * @param {String} x the format to use.
+     * @return {D3RaphaelAxis} this
+     */
+    axis.tickFormat = function(x) {
+        if (!arguments.length) return tickFormat_;
+        tickFormat_ = x;
+        return axis;
+    };
 
     /**
      * Get or set the size of major, minor and end ticks.

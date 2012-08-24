@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!--[if lte IE 8]>
+    <script type="text/javascript" src="../../lib/sizzle/sizzle.js"></script>
+    <script type="text/javascript" src="../../lib/ie8/compat.js"></script>
+    <![endif]-->
+    <script type="text/javascript" src="../../lib/raphael/raphael.js"></script>
+    <script type="text/javascript" src="../../d3.v2.js"></script>
+    <style type="text/css">
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+var data = d3.range(40).map(function(i) {
+  return {x: i / 39, y: (Math.sin(i / 3) + 2) / 4};
+});
+
+var margin = {top: 10, right: 12, bottom: 20, left: 12},
+    width = 960 - margin.left - margin.right,
+    height = 80 - margin.top - margin.bottom;
+
+var margin = {top: 10.5, right: 10.5, bottom: 20.5, left: 40.5},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+//var x = d3.scale.sqrt()
+//    .range([0, width]);
+
+var x = d3.scale.linear()
+    .domain([0, 1])
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .domain([0, 1])
+    .range([height, 0]);
+
+var xAxis = d3.raphael.axis()
+    .top(height)
+    .scale(x)
+    .tickValues([.02, .05, .08, .13, .21, .34, .55, .89])
+    .tickFormat(d3.format(".02f"))
+    .orient("bottom");
+
+var yAxis = d3.raphael.axis()
+    .scale(y)
+    .orient("left");
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.x); })
+    .y(function(d) { return y(d.y); });
+
+var area = d3.svg.area()
+    .x(line.x())
+    .y1(line.y())
+    .y0(y(0));
+
+var paper = new Raphael(document.body, width + margin.left + margin.right, height + margin.top + margin.bottom);
+var svg = d3.raphael(paper)
+        .datum(data);
+paper.setStart();
+
+svg.append("path")
+    .attr("class", "area")
+    .attr("d", area);
+
+svg.append("path")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+svg.append("path")
+    .attr("class", "y axis")
+    .call(yAxis);
+
+svg.append("path")
+    .attr("class", "line")
+    .attr("d", line);
+
+svg.selectAll(".dot")
+    .data(data.filter(function(d) { return d.y; }))
+  .enter().append("circle")
+    .attr("class", "dot")
+    .attr("cx", line.x())
+    .attr("cy", line.y())
+    .attr("r", 3.5);
+
+paper.setFinish().transform(['t', margin.left, margin.top]);
+
+    </script>
+  </body>
+</html>
