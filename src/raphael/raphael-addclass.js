@@ -99,4 +99,30 @@ if(typeof Raphael !== "undefined") {
             this.node.className = d3_raphael_addClassesToClassName(this.node.className, addClass);
         }
     }
+
+    Raphael.st.removeClass = function(remClass, parentSelector) {
+        //Simple set Attribute class if SVG
+        if (Raphael.svg) {
+            for (var i = 0; i < this.length; i++) {
+                this[i].remove(remClass)
+            };
+        }
+        //For IE
+        else {
+            // TODO: I haven't figured out what this block was for in #addClass
+        }
+    }
+
+    Raphael.el.removeClass = function(remClass, parentSelector) {
+        if (Raphael.svg) {
+            if (this.node.getAttribute('class') !== null)
+            {
+                var cssClass = " " + this.node.getAttribute('class') + " ";
+                this.node.setAttribute('class', cssClass.replace(" " + remClass + " ", " ").trim());
+            }
+        }
+        else {
+            // TODO: I haven't figured out what this block was for in #addClass
+        }
+    }
 }

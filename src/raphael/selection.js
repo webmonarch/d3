@@ -180,7 +180,7 @@ d3_raphael_selectionPrototype.classed = function(name, add) {
         if(addF.apply(this, arguments))
             this.addClass(name);
         else
-            throw_raphael_not_supported();
+            this.removeClass(name);
     })
 
     return this;
