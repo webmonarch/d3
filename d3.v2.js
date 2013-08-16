@@ -4770,8 +4770,18 @@ if(typeof Raphael !== "undefined") {
     Raphael.el.addClass = function(addClass, parentSelector) {
         //easily add class
         if (Raphael.svg) {
-            var cssClass = this.node.getAttribute('class') !== null ? this.node.getAttribute('class') + ' ' + addClass : addClass;
-            this.node.setAttribute('class', cssClass);
+            var cssClass = this.node.getAttribute('class');
+            if (cssClass !== null)
+            {
+                cssClass = ' '  + cssClass + ' ';
+                if (cssClass.indexOf(' ' + addClass + ' ') < 0)
+                {
+                    cssClass += addClass;
+                    this.node.setAttribute('class', cssClass.trim());
+                }
+            }
+            else
+            { this.node.setAttribute('class', addClass); }
         }
         //must extract CSS requirements
         else {
