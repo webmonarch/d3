@@ -4783,6 +4783,32 @@ if(typeof Raphael !== "undefined") {
             this.node.className = d3_raphael_addClassesToClassName(this.node.className, addClass);
         }
     }
+
+    Raphael.st.removeClass = function(remClass, parentSelector) {
+        //Simple set Attribute class if SVG
+        if (Raphael.svg) {
+            for (var i = 0; i < this.length; i++) {
+                this[i].remove(remClass)
+            };
+        }
+        //For IE
+        else {
+            // TODO: I haven't figured out what this block was for in #addClass
+        }
+    }
+
+    Raphael.el.removeClass = function(remClass, parentSelector) {
+        if (Raphael.svg) {
+            if (this.node.getAttribute('class') !== null)
+            {
+                var cssClass = " " + this.node.getAttribute('class') + " ";
+                this.node.setAttribute('class', cssClass.replace(" " + remClass + " ", " ").trim());
+            }
+        }
+        else {
+            // TODO: I haven't figured out what this block was for in #addClass
+        }
+    }
 }
 if(typeof Raphael !== "undefined") {
     // adds a Raphael custom attribute "d" which maps to "path"
@@ -5113,7 +5139,7 @@ d3_raphael_selectionPrototype.classed = function(name, add) {
         if(addF.apply(this, arguments))
             this.addClass(name);
         else
-            throw_raphael_not_supported();
+            this.removeClass(name);
     })
 
     return this;
@@ -5335,6 +5361,21 @@ d3_raphael_selectionPrototype.call = d3_selectionPrototype.call;
 d3_raphael_selectionPrototype.datum = d3_selectionPrototype.datum;
 
 /**
+ * Removes each instance of the selection element.
+ *
+ * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-remove">d3.selection.remove()</a>
+ *
+ * @param {Array} value
+ * @return {D3RaphaelSelection} this
+ *
+ * @function
+ * @name D3RaphaelSelection#remove
+ */
+d3_raphael_selectionPrototype.remove = function() {
+    return this.each(function() { this.remove(); });
+};
+
+/**
  * Starts a transition selection.
  *
  * @return {D3RaphaelTransitionSelection} transition selection
@@ -5350,21 +5391,6 @@ d3_raphael_selectionPrototype.transition = function() {
     d3_transitionPrototype = old_d3_transitionPrototype;
 
     return transition;
-};
-
-/**
- * Removes each instance of the selection element.
- *
- * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-remove">d3.selection.remove()</a>
- *
- * @param {Array} value
- * @return {D3RaphaelSelection} this
- *
- * @function
- * @name D3RaphaelSelection#remove
- */
-d3_raphael_selectionPrototype.remove = function() {
-    return this.each(function() { this.remove(); });
 };
 
 d3_raphael_selectionPrototype.style = throw_raphael_not_supported;
@@ -5538,6 +5564,44 @@ d3_raphael_transitionPrototype.style = throw_raphael_not_supported;
 d3_raphael_transitionPrototype.styleTween = throw_raphael_not_supported;
 d3_raphael_transitionPrototype.select = throw_raphael_not_supported;
 d3_raphael_transitionPrototype.selectAll = throw_raphael_not_supported;
+
+// Prefer Sizzle, if available
+if (typeof Sizzle === "function") {
+
+    // lookup to translate dom nodes to raphael objs
+    var d3_raphael_obj_from_dom = function(domElems, d3_paper) {
+        // don't do a paper.getById for every elem because that's n^2.
+        // traverse the linked list ourselves. still m+n, but oh well.
+
+        var elemCount = domElems.length;
+
+        // but first build an index of ids we're looking for
+        var domElemIndex = {};
+        for (var i = -1; ++i < elemCount;) {
+            var domElem = domElems[i];
+            domElemIndex[domElem.raphaelid] = true;
+        }
+
+        var raphaelElems = [];
+        var bot = d3_paper.paper.bottom;
+        while (bot && (raphaelElems.length < elemCount)) {
+            if (domElemIndex[bot.id]) {
+                raphaelElems.push(bot);
+            }
+            bot = bot.next;
+        }
+        return raphaelElems;
+    };
+
+    // override root functions
+    D3RaphaelRoot.prototype.select = function(s) {
+        return d3_raphael_selection([d3_raphael_obj_from_dom(Sizzle(s, this.paper.canvas)[0], this)], this);
+    };
+    D3RaphaelRoot.prototype.selectAll = function(s) {
+        return d3_raphael_selection([d3_raphael_obj_from_dom(Sizzle.uniqueSort(Sizzle(s, this.paper.canvas)), this)], this);
+    };
+
+}
 
 /**
  * Constructs a Raphael axis renderer function.
@@ -5840,45 +5904,7 @@ d3.raphael.axis = function() {
     }
 
     return axis;
-};// Prefer Sizzle, if available
-if (typeof Sizzle === "function") {
-
-    // lookup to translate dom nodes to raphael objs
-    var d3_raphael_obj_from_dom = function(domElems, d3_paper) {
-        // don't do a paper.getById for every elem because that's n^2.
-        // traverse the linked list ourselves. still m+n, but oh well.
-
-        var elemCount = domElems.length;
-
-        // but first build an index of ids we're looking for
-        var domElemIndex = {};
-        for (var i = -1; ++i < elemCount;) {
-            var domElem = domElems[i];
-            domElemIndex[domElem.raphaelid] = true;
-        }
-
-        var raphaelElems = [];
-        var bot = d3_paper.paper.bottom;
-        while (bot && (raphaelElems.length < elemCount)) {
-            if (domElemIndex[bot.id]) {
-                raphaelElems.push(bot);
-            }
-            bot = bot.next;
-        }
-        return raphaelElems;
-    };
-
-    // override root functions
-    D3RaphaelRoot.prototype.select = function(s) {
-        return d3_raphael_selection([d3_raphael_obj_from_dom(Sizzle(s, this.paper.canvas)[0], this)], this);
-    };
-    D3RaphaelRoot.prototype.selectAll = function(s) {
-        return d3_raphael_selection([d3_raphael_obj_from_dom(Sizzle.uniqueSort(Sizzle(s, this.paper.canvas)), this)], this);
-    };
-
-}
-
-d3.behavior = {};
+};d3.behavior = {};
 // TODO Track touch points by identifier.
 
 d3.behavior.drag = function() {
