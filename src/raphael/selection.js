@@ -283,8 +283,7 @@ d3_raphael_selectionPrototype.on = function(type, handler, capture) {
  * (like in d3).  Thus, every call to <code>select</code> searches on all elements in the paper, regardless of the
  * existing content of the selection. <br />
  * <br />
- * NOTE: Currently, the selector string is limited in features.  Right now, you can only specify the Raphael primitive
- * type name you want to select, no other selector strings are supported (like css class name).
+ * NOTE: Currently, the selector string supports only element type and class names.
  *
  * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-d3_select">d3.select()</a>
  * @see d3_raphael_paperShapes for a list of supported primitive types
@@ -295,8 +294,8 @@ d3_raphael_selectionPrototype.on = function(type, handler, capture) {
  * @function
  * @name D3RaphaelSelection#select
  */
-d3_raphael_selectionPrototype.select = function(type) {
-    return this.root.select(type);
+d3_raphael_selectionPrototype.select = function(s) {
+    return this.root.select(s);
 };
 
 /**
@@ -308,8 +307,7 @@ d3_raphael_selectionPrototype.select = function(type) {
  * (like in d3).  Thus, every call to <code>select</code> searches on all elements in the paper, regardless of the
  * existing content of the selection. <br />
  * <br />
- * NOTE: Currently, the selector string is limited in features.  Right now, you can only specify the Raphael primitive
- * type name you want to select, no other selector strings are supported (like css class name).
+ * NOTE: Currently, the selector string supports only element type and class names.
  *
  * @see <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-d3_selectAll">d3.selectAll()</a>
  * @see d3_raphael_paperShapes for a list of supported primitive types
@@ -320,8 +318,8 @@ d3_raphael_selectionPrototype.select = function(type) {
  * @function
  * @name D3RaphaelSelection#selectAll
  */
-d3_raphael_selectionPrototype.selectAll = function(type) {
-    return this.root.selectAll(type);
+d3_raphael_selectionPrototype.selectAll = function(s) {
+    return this.root.selectAll(s);
 };
 
 

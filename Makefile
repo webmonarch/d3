@@ -163,7 +163,8 @@ d3.raphael.js: \
 	src/raphael/selection.js \
 	src/raphael/selection-enter.js \
 	src/raphael/selection-transition.js \
-	src/raphael/axis.js
+	src/raphael/axis.js \
+	src/raphael/raphael-sizzle.js
 
 d3.behavior.js: \
 	src/behavior/behavior.js \

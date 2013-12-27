@@ -14,24 +14,24 @@ var D3RaphaelRoot = function(paper) {
 /**
  * Performs a select on the elements in the Raphael paper.
  *
- * @param {String} type raphael selector string (currently limited to a Raphael primitive type name, ie: rect, circle, ellipse, text, and path)
+ * @param {String} raphael selector string; supports primitive type name and css classes.
  * @return {D3RaphaelSelection}
  * @private
  * @version Internal; Subject to change
  */
-D3RaphaelRoot.prototype.select = function(type) {
-    return d3_raphael_selection([d3_raphael_type_selector(type, this, true)], this)
+D3RaphaelRoot.prototype.select = function(s) {
+    return d3_raphael_selection([d3_raphael_selector(s, this, true)], this)
 };
 
 /**
  * Performs a selectAll on the elements in the Raphael paper.
  *
- * @param {String} type raphael selector string (currently limited to a Raphael primitive type name, ie: rect, circle, ellipse, text, and path)
+ * @param {String} raphael selector string; supports primitive type name and css classes.
  * @return {D3RaphaelSelection}
  * @private
  */
-D3RaphaelRoot.prototype.selectAll = function(type) {
-    return d3_raphael_selection([d3_raphael_type_selector(type, this, false)], this)
+D3RaphaelRoot.prototype.selectAll = function(s) {
+    return d3_raphael_selection([d3_raphael_selector(s, this, false)], this)
 };
 
 /**
